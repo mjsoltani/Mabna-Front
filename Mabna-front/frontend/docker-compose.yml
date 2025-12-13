@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  mabna-front:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mabna-front
+    ports:
+      - "80:80"
+    environment:
+      - VITE_API_URL=http://193.141.64.139:3000
+    restart: unless-stopped
+    networks:
+      - mabna-network
+
+networks:
+  mabna-network:
+    driver: bridge

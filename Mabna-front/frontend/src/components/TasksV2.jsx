@@ -18,11 +18,13 @@ function TasksV2({ token, focusTaskId }) {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
   const [highlightTaskId, setHighlightTaskId] = useState(null);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [formData, setFormData] = useState({
     title: '',
     assignee_id: '',
     key_result_ids: [],
-    status: 'todo'
+    status: 'todo',
+    type: 'routine'
   });
 
   useEffect(() => {
@@ -76,7 +78,7 @@ function TasksV2({ token, focusTaskId }) {
       if (response.ok) {
         await fetchData();
         setShowModal(false);
-        setFormData({ title: '', assignee_id: '', key_result_ids: [], status: 'todo' });
+        setFormData({ title: '', assignee_id: '', key_result_ids: [], status: 'todo', type: 'routine' });
       }
     } catch (error) {
       console.error('Error creating task:', error);
@@ -101,14 +103,46 @@ function TasksV2({ token, focusTaskId }) {
     }
   };
 
+  const handleTypeChange = async (taskId, newType) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/tasks/${taskId}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ type: newType })
+      });
+      if (response.ok) {
+        await fetchData();
+      }
+    } catch (error) {
+      console.error('Error updating task type:', error);
+    }
+  };
+
+  const handleDeleteTask = async (taskId) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/tasks/${taskId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        await fetchData();
+        setDeleteConfirm(null);
+      }
+    } catch (error) {
+      console.error('Error deleting task:', error);
+    }
+  };
+
   const fetchComments = async (taskId) => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/comments/task/${taskId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.ok) {
-        const data = await response.json();
-        setComments(data);
+        setComments(await response.json());
       }
     } catch (error) {
       console.error('Error fetching comments:', error);
@@ -122,11 +156,10 @@ function TasksV2({ token, focusTaskId }) {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
-        const data = await res.json();
-        setAttachments(Array.isArray(data) ? data : []);
+        setAttachments(await res.json());
       }
-    } catch (e) {
-      setAttachments([]);
+    } catch (error) {
+      console.error('Error fetching attachments:', error);
     } finally {
       setAttachmentsLoading(false);
     }
@@ -134,8 +167,6 @@ function TasksV2({ token, focusTaskId }) {
 
   const handleAddComment = async (e) => {
     e.preventDefault();
-    if (!newComment.trim()) return;
-
     try {
       const response = await fetch(`${API_BASE_URL}/api/comments`, {
         method: 'POST',
@@ -171,135 +202,175 @@ function TasksV2({ token, focusTaskId }) {
     }
   };
 
-  const openCommentsModal = async (task) => {
+  const handleFileUpload = async () => {
+    if (!selectedFile) return;
+    setUploading(true);
+    setUploadError('');
+    try {
+      const form = new FormData();
+      form.append('file', selectedFile);
+      const res = await fetch(`${API_BASE_URL}/api/tasks/${selectedTask.id}/attachments`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: form
+      });
+      if (res.ok) {
+        setSelectedFile(null);
+        await fetchAttachments(selectedTask.id);
+      } else {
+        setUploadError('خطا در آپلود فایل');
+      }
+    } catch (error) {
+      setUploadError('خطا در آپلود فایل');
+      console.error('Error uploading file:', error);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleDownloadAttachment = async (attachmentId) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/attachments/${attachmentId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'attachment';
+        a.click();
+      }
+    } catch (error) {
+      console.error('Error downloading attachment:', error);
+    }
+  };
+
+  const handleDeleteAttachment = async (attachmentId) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/attachments/${attachmentId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        await fetchAttachments(selectedTask.id);
+      }
+    } catch (error) {
+      console.error('Error deleting attachment:', error);
+    }
+  };
+
+  const openTaskModal = (task) => {
     setSelectedTask(task);
     setShowCommentsModal(true);
-    await fetchComments(task.id);
-    await fetchAttachments(task.id);
+    fetchComments(task.id);
+    fetchAttachments(task.id);
   };
 
-  const toggleKR = (krId) => {
-    setFormData(prev => ({
-      ...prev,
-      key_result_ids: prev.key_result_ids.includes(krId)
-        ? prev.key_result_ids.filter(id => id !== krId)
-        : [...prev.key_result_ids, krId]
-    }));
+  if (loading) return <div className="loading">در حال بارگذاری...</div>;
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'done': return '#10b981';
+      case 'in_progress': return '#2563eb';
+      case 'todo': return '#f59e0b';
+      default: return '#6b7280';
+    }
   };
 
-  const getStatusBadge = (status) => {
-    const badges = {
-      todo: { text: 'انجام نشده', emoji: '⏳', class: 'status-todo' },
-      in_progress: { text: 'در حال انجام', emoji: '🔄', class: 'status-progress' },
-      done: { text: 'انجام شده', emoji: '✅', class: 'status-done' }
-    };
-    const badge = badges[status] || badges.todo;
-    return (
-      <span className={`task-status ${badge.class}`}>
-        <span>{badge.emoji}</span>
-        <span>{badge.text}</span>
-      </span>
-    );
+  const getTypeLabel = (type) => {
+    return type === 'special' ? 'ویژه' : 'معمولی';
   };
-
-  if (loading) {
-    return <div className="loading">در حال بارگذاری...</div>;
-  }
 
   return (
-    <div>
-      <div className="section-header">
+    <div className="tasks-container">
+      <div className="tasks-header">
         <h2>وظایف</h2>
-        <button className="btn-add" onClick={() => setShowModal(true)}>
-          + افزودن وظیفه جدید
+        <button className="btn-primary" onClick={() => setShowModal(true)}>
+          + وظیفه جدید
         </button>
       </div>
 
-      {tasks.length === 0 ? (
-        <div className="empty-state">
-          <div style={{ fontSize: '64px', opacity: 0.3, marginBottom: '20px' }}>✅</div>
-          <p>هنوز وظیفه‌ای ثبت نشده است</p>
-        </div>
-      ) : (
-        tasks.map(task => (
-          <div key={task.id} id={`task-${task.id}`} className={`task-card${highlightTaskId === task.id ? ' focused' : ''}`}>
-            <div className="task-header">
-              <div className="task-info">
-                <h3 className="task-title">{task.title}</h3>
-                <p className="task-assignee">مسئول: {task.assignee?.full_name}</p>
-              </div>
-              <div className="task-actions">
-                {getStatusBadge(task.status)}
-                <select
-                  className="status-select"
-                  value={task.status}
-                  onChange={(e) => handleStatusChange(task.id, e.target.value)}
-                >
-                  <option value="todo">انجام نشده</option>
-                  <option value="in_progress">در حال انجام</option>
-                  <option value="done">انجام شده</option>
-                </select>
-              </div>
-            </div>
-
-            {task.key_results && task.key_results.length > 0 && (
-              <div className="task-krs">
-                {task.key_results.map(kr => (
-                  <span key={kr.id} className="kr-badge">{kr.title}</span>
-                ))}
-              </div>
-            )}
-
-            <div className="task-footer">
-              <button 
-                className="btn-comments"
-                onClick={() => openCommentsModal(task)}
-              >
-                💬 کامنت‌ها
-              </button>
-            </div>
-          </div>
-        ))
-      )}
-
-      {/* Modal افزودن وظیفه */}
       {showModal && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h3>افزودن وظیفه جدید</h3>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h3>ایجاد وظیفه جدید</h3>
             <form onSubmit={handleSubmit}>
               <div className="form-group">
                 <label>عنوان وظیفه</label>
                 <input
                   type="text"
                   value={formData.title}
-                  onChange={(e) => setFormData({...formData, title: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   required
-                  placeholder="مثال: پیاده‌سازی صفحه لندینگ"
+                  placeholder="عنوان وظیفه را وارد کنید"
                 />
               </div>
 
               <div className="form-group">
-                <label>مسئول انجام</label>
+                <label>نوع وظیفه</label>
+                <select
+                  value={formData.type}
+                  onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                >
+                  <option value="routine">معمولی</option>
+                  <option value="special">ویژه</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label>تخصیص به</label>
                 <select
                   value={formData.assignee_id}
-                  onChange={(e) => setFormData({...formData, assignee_id: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, assignee_id: e.target.value })}
                   required
                 >
-                  <option value="">انتخاب کنید</option>
+                  <option value="">انتخاب کاربر</option>
                   {users.map(user => (
-                    <option key={user.user_id} value={user.user_id}>
-                      {user.full_name}
-                    </option>
+                    <option key={user.id} value={user.id}>{user.full_name}</option>
                   ))}
                 </select>
               </div>
 
               <div className="form-group">
-                <label>وضعیت</label>
+                <label>نتایج کلیدی (اختیاری)</label>
                 <select
-                  value={formData.status}
-                  onChange={(e) => setFormData({...formData, status: e.target.value})}
+                  multiple
+                  value={formData.key_result_ids}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    key_result_ids: Array.from(e.target.selectedOptions, option => option.value)
+                  })}
+                >
+                  {keyResults.map(kr => (
+                    <option key={kr.id} value={kr.id}>{kr.title}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-actions">
+                <button type="submit" className="btn-primary">ایجاد</button>
+                <button type="button" className="btn-secondary" onClick={() => setShowModal(false)}>
+                  انصراف
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showCommentsModal && selectedTask && (
+        <div className="modal-overlay" onClick={() => setShowCommentsModal(false)}>
+          <div className="modal-content large" onClick={(e) => e.stopPropagation()}>
+            <h3>{selectedTask.title}</h3>
+
+            <div className="task-details">
+              <div className="detail-row">
+                <span className="label">وضعیت:</span>
+                <select
+                  value={selectedTask.status}
+                  onChange={(e) => handleStatusChange(selectedTask.id, e.target.value)}
+                  className="status-select"
                 >
                   <option value="todo">انجام نشده</option>
                   <option value="in_progress">در حال انجام</option>
@@ -307,192 +378,167 @@ function TasksV2({ token, focusTaskId }) {
                 </select>
               </div>
 
-              <div className="form-group">
-                <label>نتایج کلیدی مرتبط (حداقل یکی)</label>
-                <div className="kr-checkbox-list">
-                  {keyResults.length === 0 ? (
-                    <p style={{ color: '#999', textAlign: 'center' }}>ابتدا نتایج کلیدی ایجاد کنید</p>
-                  ) : (
-                    keyResults.map(kr => (
-                      <label key={kr.id} className="checkbox-label">
-                        <input
-                          type="checkbox"
-                          checked={formData.key_result_ids.includes(kr.id)}
-                          onChange={() => toggleKR(kr.id)}
-                        />
-                        <span>{kr.title} ({kr.objective_title})</span>
-                      </label>
-                    ))
-                  )}
-                </div>
-              </div>
-
-              <div className="modal-actions">
-                <button type="button" className="btn-secondary" onClick={() => setShowModal(false)}>
-                  انصراف
-                </button>
-                <button 
-                  type="submit" 
-                  className="btn-primary"
-                  disabled={formData.key_result_ids.length === 0}
+              <div className="detail-row">
+                <span className="label">نوع:</span>
+                <select
+                  value={selectedTask.type || 'routine'}
+                  onChange={(e) => handleTypeChange(selectedTask.id, e.target.value)}
+                  className="type-select"
                 >
-                  ذخیره
-                </button>
+                  <option value="routine">معمولی</option>
+                  <option value="special">ویژه</option>
+                </select>
               </div>
-            </form>
-          </div>
-        </div>
-      )}
+            </div>
 
-      {/* Modal کامنت‌ها */}
-      {showCommentsModal && selectedTask && (
-        <div className="modal-overlay" onClick={() => setShowCommentsModal(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h3>کامنت‌های وظیفه: {selectedTask.title}</h3>
-            
-            <div className="comments-list">
-              {comments.length === 0 ? (
-                <p className="no-comments">هنوز کامنتی ثبت نشده است</p>
-              ) : (
-                comments.map(comment => (
+            <div className="comments-section">
+              <h4>کامنت‌ها</h4>
+              <div className="comments-list">
+                {comments.map(comment => (
                   <div key={comment.id} className="comment-item">
                     <div className="comment-header">
-                      <span className="comment-author">{comment.user_name}</span>
-                      <span className="comment-date">
-                        {new Date(comment.created_at).toLocaleDateString('fa-IR')}
-                      </span>
+                      <span className="comment-author">{comment.user?.full_name}</span>
+                      <span className="comment-date">{new Date(comment.created_at).toLocaleDateString('fa-IR')}</span>
                     </div>
                     <p className="comment-content">{comment.content}</p>
-                    <button 
+                    <button
                       className="btn-delete-comment"
                       onClick={() => handleDeleteComment(comment.id)}
                     >
                       حذف
                     </button>
                   </div>
-                ))
-              )}
-            </div>
+                ))}
+              </div>
 
-            <form onSubmit={handleAddComment} className="comment-form">
-              <textarea
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                placeholder="کامنت خود را بنویسید..."
-                rows="3"
-              />
-              <button type="submit" className="btn-primary">
-                افزودن کامنت
-              </button>
-            </form>
+              <form onSubmit={handleAddComment} className="comment-form">
+                <textarea
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  placeholder="کامنت خود را بنویسید..."
+                  required
+                />
+                <button type="submit" className="btn-primary">ارسال</button>
+              </form>
+            </div>
 
             <div className="attachments-section">
-              <h4 className="attachments-title">پیوست‌ها</h4>
-              <div className="attachments-actions">
-                <input type="file" onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  setUploadError('');
-                  if (!file) return;
-                  if (file.size > 10 * 1024 * 1024) {
-                    setUploadError('حداکثر حجم فایل 10MB است');
-                    e.target.value = '';
-                    return;
-                  }
-                  setSelectedFile(file);
-                }} />
-                <button 
-                  className="btn-secondary" 
-                  onClick={async () => {
-                    if (!selectedFile || !selectedTask) return;
-                    setUploading(true);
-                    try {
-                      const form = new FormData();
-                      form.append('file', selectedFile);
-                      const res = await fetch(`${API_BASE_URL}/api/tasks/${selectedTask.id}/attachments`, {
-                        method: 'POST',
-                        headers: { 'Authorization': `Bearer ${token}` },
-                        body: form
-                      });
-                      if (res.ok) {
-                        setSelectedFile(null);
-                        await fetchAttachments(selectedTask.id);
-                      }
-                    } catch (e) {}
-                    finally {
-                      setUploading(false);
-                    }
-                  }}
-                  disabled={uploading || !selectedFile}
-                >
-                  {uploading ? 'در حال آپلود...' : 'آپلود فایل'}
-                </button>
-              </div>
-              {uploadError && (
-                <div className="error-inline">{uploadError}</div>
-              )}
-              <div className="attachments-list">
-                {attachmentsLoading ? (
-                  <div className="loading">در حال بارگذاری...</div>
-                ) : attachments.length === 0 ? (
-                  <p className="no-attachments">فایلی پیوست نشده است</p>
-                ) : (
-                  attachments.map(a => (
+              <h4>پیوست‌ها</h4>
+              {attachmentsLoading ? (
+                <p>در حال بارگذاری...</p>
+              ) : (
+                <div className="attachments-list">
+                  {attachments.map(a => (
                     <div key={a.id} className="attachment-item">
-                      <div className="attachment-info">
-                        <div className="attachment-name">{a.filename || a.name || 'فایل'}</div>
-                        <div className="attachment-meta">
-                          <span>{a.size ? `${(a.size/1024).toFixed(1)} KB` : ''}</span>
-                          <span>{a.created_at ? new Date(a.created_at).toLocaleString('fa-IR') : ''}</span>
-                          <span>{a.uploader_name || a.uploaded_by || ''}</span>
-                        </div>
-                      </div>
+                      <span className="attachment-name">{a.file_name}</span>
                       <div className="attachment-actions">
-                        <button className="btn-secondary" onClick={async () => {
-                          try {
-                            const res = await fetch(`${API_BASE_URL}/api/attachments/${a.id}`, {
-                              headers: { 'Authorization': `Bearer ${token}` }
-                            });
-                            if (res.ok) {
-                              const blob = await res.blob();
-                              const url = URL.createObjectURL(blob);
-                              const link = document.createElement('a');
-                              link.href = url;
-                              link.download = a.filename || a.name || 'attachment';
-                              document.body.appendChild(link);
-                              link.click();
-                              link.remove();
-                              URL.revokeObjectURL(url);
-                            }
-                          } catch (e) {}
-                        }}>دانلود</button>
-                        <button className="btn-delete-attachment" onClick={async () => {
-                          try {
-                            const res = await fetch(`${API_BASE_URL}/api/attachments/${a.id}`, {
-                              method: 'DELETE',
-                              headers: { 'Authorization': `Bearer ${token}` }
-                            });
-                            if (res.ok) {
-                              await fetchAttachments(selectedTask.id);
-                            }
-                          } catch (e) {}
-                        }}>حذف</button>
+                        <button
+                          className="btn-secondary"
+                          onClick={() => handleDownloadAttachment(a.id)}
+                        >
+                          دانلود
+                        </button>
+                        <button
+                          className="btn-delete-attachment"
+                          onClick={() => handleDeleteAttachment(a.id)}
+                        >
+                          حذف
+                        </button>
                       </div>
                     </div>
-                  ))
-                )}
+                  ))}
+                </div>
+              )}
+
+              <div className="file-upload">
+                <input
+                  type="file"
+                  onChange={(e) => setSelectedFile(e.target.files?.[0])}
+                  disabled={uploading}
+                />
+                <button
+                  onClick={handleFileUpload}
+                  disabled={!selectedFile || uploading}
+                  className="btn-primary"
+                >
+                  {uploading ? 'در حال آپلود...' : 'آپلود'}
+                </button>
+                {uploadError && <p className="error">{uploadError}</p>}
               </div>
             </div>
 
-            <button 
-              className="btn-secondary" 
+            <button
+              className="btn-secondary"
               onClick={() => setShowCommentsModal(false)}
-              style={{ marginTop: '16px', width: '100%' }}
             >
               بستن
             </button>
           </div>
         </div>
       )}
+
+      {deleteConfirm && (
+        <div className="modal-overlay" onClick={() => setDeleteConfirm(null)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h3>حذف وظیفه</h3>
+            <p>آیا مطمئن هستید که می‌خواهید این وظیفه را حذف کنید؟</p>
+            <div className="form-actions">
+              <button
+                className="btn-delete"
+                onClick={() => handleDeleteTask(deleteConfirm)}
+              >
+                حذف
+              </button>
+              <button
+                className="btn-secondary"
+                onClick={() => setDeleteConfirm(null)}
+              >
+                انصراف
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="tasks-grid">
+        {tasks.map(task => (
+          <div
+            key={task.id}
+            id={`task-${task.id}`}
+            className={`task-card ${highlightTaskId === task.id ? 'highlight' : ''}`}
+          >
+            <div className="task-header">
+              <h4>{task.title}</h4>
+              <div className="task-badges">
+                <span className="badge type-badge" title={getTypeLabel(task.type || 'routine')}>
+                  {task.type === 'special' ? '⭐' : '📌'}
+                </span>
+                <span
+                  className="badge status-badge"
+                  style={{ backgroundColor: getStatusColor(task.status) }}
+                >
+                  {task.status === 'done' ? 'انجام شده' : task.status === 'in_progress' ? 'در حال انجام' : 'انجام نشده'}
+                </span>
+              </div>
+            </div>
+
+            <div className="task-actions">
+              <button
+                className="btn-secondary"
+                onClick={() => openTaskModal(task)}
+              >
+                جزئیات
+              </button>
+              <button
+                className="btn-delete"
+                onClick={() => setDeleteConfirm(task.id)}
+              >
+                حذف
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

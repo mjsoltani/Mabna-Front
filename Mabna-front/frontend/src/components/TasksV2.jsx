@@ -327,7 +327,7 @@ function TasksV2({ token, focusTaskId }) {
                 >
                   <option value="">انتخاب کاربر</option>
                   {users.map(user => (
-                    <option key={user.id} value={user.id}>{user.full_name}</option>
+                    <option key={user.user_id} value={user.user_id}>{user.full_name}</option>
                   ))}
                 </select>
               </div>

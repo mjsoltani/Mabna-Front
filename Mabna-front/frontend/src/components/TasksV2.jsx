@@ -21,6 +21,7 @@ function TasksV2({ token, focusTaskId }) {
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [formData, setFormData] = useState({
     title: '',
+    description: '',
     assignee_id: '',
     key_result_ids: [],
     status: 'todo',
@@ -28,6 +29,8 @@ function TasksV2({ token, focusTaskId }) {
     subtasks: []
   });
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
+  const [editingDescription, setEditingDescription] = useState(null);
+  const [tempDescription, setTempDescription] = useState('');
 
   useEffect(() => {
     fetchData();
@@ -80,7 +83,7 @@ function TasksV2({ token, focusTaskId }) {
       if (response.ok) {
         await fetchData();
         setShowModal(false);
-        setFormData({ title: '', assignee_id: '', key_result_ids: [], status: 'todo', type: 'routine', subtasks: [] });
+        setFormData({ title: '', description: '', assignee_id: '', key_result_ids: [], status: 'todo', type: 'routine', subtasks: [] });
         setNewSubtaskTitle('');
       }
     } catch (error) {
@@ -263,6 +266,26 @@ function TasksV2({ token, focusTaskId }) {
     }
   };
 
+  const handleUpdateDescription = async (taskId, description) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/tasks/${taskId}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ description })
+      });
+      if (response.ok) {
+        await fetchData();
+        setEditingDescription(null);
+        setTempDescription('');
+      }
+    } catch (error) {
+      console.error('Error updating description:', error);
+    }
+  };
+
   const handleToggleSubtask = async (subtaskId) => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/subtasks/${subtaskId}/toggle`, {
@@ -352,6 +375,17 @@ function TasksV2({ token, focusTaskId }) {
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   required
                   placeholder="عنوان وظیفه را وارد کنید"
+                />
+              </div>
+
+              <div className="form-group">
+                <label>توضیحات (اختیاری)</label>
+                <textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="توضیحات کامل وظیفه را وارد کنید..."
+                  rows={4}
+                  className="description-textarea"
                 />
               </div>
 
@@ -468,6 +502,56 @@ function TasksV2({ token, focusTaskId }) {
                   <option value="special">ویژه</option>
                 </select>
               </div>
+            </div>
+
+            <div className="description-section">
+              <h4>توضیحات</h4>
+              {editingDescription === selectedTask.id ? (
+                <div className="description-edit">
+                  <textarea
+                    value={tempDescription}
+                    onChange={(e) => setTempDescription(e.target.value)}
+                    placeholder="توضیحات وظیفه را وارد کنید..."
+                    rows={5}
+                    className="description-textarea"
+                    autoFocus
+                  />
+                  <div className="description-actions">
+                    <button
+                      className="btn-primary"
+                      onClick={() => handleUpdateDescription(selectedTask.id, tempDescription)}
+                    >
+                      ذخیره
+                    </button>
+                    <button
+                      className="btn-secondary"
+                      onClick={() => {
+                        setEditingDescription(null);
+                        setTempDescription('');
+                      }}
+                    >
+                      لغو
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="description-view">
+                  {selectedTask.description ? (
+                    <p className="description-text">{selectedTask.description}</p>
+                  ) : (
+                    <p className="no-description">توضیحاتی وجود ندارد</p>
+                  )}
+                  <button
+                    className="btn-edit-description"
+                    onClick={() => {
+                      setEditingDescription(selectedTask.id);
+                      setTempDescription(selectedTask.description || '');
+                    }}
+                  >
+                    ✏️ ویرایش توضیحات
+                  </button>
+                </div>
+              )}
             </div>
 
             <div className="comments-section">

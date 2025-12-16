@@ -24,8 +24,10 @@ function TasksV2({ token, focusTaskId }) {
     assignee_id: '',
     key_result_ids: [],
     status: 'todo',
-    type: 'routine'
+    type: 'routine',
+    subtasks: []
   });
+  const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
 
   useEffect(() => {
     fetchData();
@@ -78,7 +80,8 @@ function TasksV2({ token, focusTaskId }) {
       if (response.ok) {
         await fetchData();
         setShowModal(false);
-        setFormData({ title: '', assignee_id: '', key_result_ids: [], status: 'todo', type: 'routine' });
+        setFormData({ title: '', assignee_id: '', key_result_ids: [], status: 'todo', type: 'routine', subtasks: [] });
+        setNewSubtaskTitle('');
       }
     } catch (error) {
       console.error('Error creating task:', error);
@@ -260,6 +263,51 @@ function TasksV2({ token, focusTaskId }) {
     }
   };
 
+  const handleToggleSubtask = async (subtaskId) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/subtasks/${subtaskId}/toggle`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        await fetchData();
+      }
+    } catch (error) {
+      console.error('Error toggling subtask:', error);
+    }
+  };
+
+  const handleDeleteSubtask = async (subtaskId) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/subtasks/${subtaskId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        await fetchData();
+      }
+    } catch (error) {
+      console.error('Error deleting subtask:', error);
+    }
+  };
+
+  const handleAddSubtask = () => {
+    if (newSubtaskTitle.trim()) {
+      setFormData({
+        ...formData,
+        subtasks: [...formData.subtasks, { title: newSubtaskTitle.trim() }]
+      });
+      setNewSubtaskTitle('');
+    }
+  };
+
+  const handleRemoveSubtask = (index) => {
+    setFormData({
+      ...formData,
+      subtasks: formData.subtasks.filter((_, i) => i !== index)
+    });
+  };
+
   const openTaskModal = (task) => {
     setSelectedTask(task);
     setShowCommentsModal(true);
@@ -346,6 +394,37 @@ function TasksV2({ token, focusTaskId }) {
                     <option key={kr.id} value={kr.id}>{kr.title}</option>
                   ))}
                 </select>
+              </div>
+
+              <div className="form-group">
+                <label>چک‌لیست (اختیاری)</label>
+                <div className="subtasks-input">
+                  <input
+                    type="text"
+                    value={newSubtaskTitle}
+                    onChange={(e) => setNewSubtaskTitle(e.target.value)}
+                    placeholder="مثال: طراحی UI"
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAddSubtask();
+                      }
+                    }}
+                  />
+                  <button type="button" className="btn-add-subtask" onClick={handleAddSubtask}>
+                    + افزودن
+                  </button>
+                </div>
+                {formData.subtasks.length > 0 && (
+                  <ul className="subtasks-preview">
+                    {formData.subtasks.map((st, idx) => (
+                      <li key={idx}>
+                        <span>✓ {st.title}</span>
+                        <button type="button" onClick={() => handleRemoveSubtask(idx)}>✕</button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
 
               <div className="form-actions">
@@ -521,6 +600,43 @@ function TasksV2({ token, focusTaskId }) {
                 </span>
               </div>
             </div>
+
+            {task.subtasks && task.subtasks.length > 0 && (
+              <div className="subtasks-section">
+                <div className="progress-bar">
+                  <div 
+                    className="progress-fill" 
+                    style={{ 
+                      width: `${(task.subtasks.filter(st => st.isCompleted).length / task.subtasks.length) * 100}%` 
+                    }}
+                  />
+                  <span className="progress-text">
+                    {task.subtasks.filter(st => st.isCompleted).length}/{task.subtasks.length} انجام شده
+                  </span>
+                </div>
+                <ul className="subtasks-list">
+                  {task.subtasks.map(subtask => (
+                    <li key={subtask.id} className="subtask-item">
+                      <input
+                        type="checkbox"
+                        checked={subtask.isCompleted}
+                        onChange={() => handleToggleSubtask(subtask.id)}
+                      />
+                      <span className={subtask.isCompleted ? 'completed' : ''}>
+                        {subtask.title}
+                      </span>
+                      <button 
+                        className="btn-delete-subtask"
+                        onClick={() => handleDeleteSubtask(subtask.id)}
+                        title="حذف"
+                      >
+                        🗑️
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             <div className="task-actions">
               <button

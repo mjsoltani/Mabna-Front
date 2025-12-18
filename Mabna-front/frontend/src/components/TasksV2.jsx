@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import API_BASE_URL from '../config';
 import './TasksV2.css';
+import MentionTextarea from './MentionTextarea';
+import DescriptionWithMentions from './DescriptionWithMentions';
 
 function TasksV2({ token, focusTaskId }) {
   const [tasks, setTasks] = useState([]);
@@ -380,13 +382,16 @@ function TasksV2({ token, focusTaskId }) {
 
               <div className="form-group">
                 <label>توضیحات (اختیاری)</label>
-                <textarea
+                <MentionTextarea
                   value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="توضیحات کامل وظیفه را وارد کنید..."
+                  onChange={(text) => setFormData({ ...formData, description: text })}
+                  users={users}
+                  placeholder="توضیحات کامل وظیفه را وارد کنید... (برای mention کردن @ بزنید)"
                   rows={4}
-                  className="description-textarea"
                 />
+                <small style={{ color: '#6b7280', fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                  💡 برای mention کردن کاربران، @ بزنید
+                </small>
               </div>
 
               <div className="form-group">
@@ -508,13 +513,12 @@ function TasksV2({ token, focusTaskId }) {
               <h4>توضیحات</h4>
               {editingDescription === selectedTask.id ? (
                 <div className="description-edit">
-                  <textarea
+                  <MentionTextarea
                     value={tempDescription}
-                    onChange={(e) => setTempDescription(e.target.value)}
-                    placeholder="توضیحات وظیفه را وارد کنید..."
+                    onChange={setTempDescription}
+                    users={users}
+                    placeholder="توضیحات وظیفه را وارد کنید... (برای mention کردن @ بزنید)"
                     rows={5}
-                    className="description-textarea"
-                    autoFocus
                   />
                   <div className="description-actions">
                     <button
@@ -537,7 +541,7 @@ function TasksV2({ token, focusTaskId }) {
               ) : (
                 <div className="description-view">
                   {selectedTask.description ? (
-                    <p className="description-text">{selectedTask.description}</p>
+                    <DescriptionWithMentions description={selectedTask.description} />
                   ) : (
                     <p className="no-description">توضیحاتی وجود ندارد</p>
                   )}

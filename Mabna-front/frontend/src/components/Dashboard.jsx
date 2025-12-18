@@ -6,6 +6,7 @@ import Invitations from './Invitations';
 import DashboardStats from './DashboardStats';
 import Notifications from './Notifications';
 import Teams from './Teams';
+import NotificationBell from './NotificationBell';
 
 function Dashboard({ user, token, onLogout }) {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -92,13 +93,22 @@ function Dashboard({ user, token, onLogout }) {
               {activeTab === 'teams' && 'تیم‌ها'}
               {activeTab === 'invitations' && 'دعوت کاربران'}
             </h1>
-            <Notifications 
-              token={token} 
-              onNavigateToTask={(taskId) => {
-                setActiveTab('tasks');
-                setFocusTaskId(taskId);
-              }}
-            />
+            <div className="header-actions">
+              <NotificationBell 
+                token={token}
+                onTaskClick={(taskId) => {
+                  setActiveTab('tasks');
+                  setFocusTaskId(taskId);
+                }}
+              />
+              <Notifications 
+                token={token} 
+                onNavigateToTask={(taskId) => {
+                  setActiveTab('tasks');
+                  setFocusTaskId(taskId);
+                }}
+              />
+            </div>
           </div>
         </header>
 

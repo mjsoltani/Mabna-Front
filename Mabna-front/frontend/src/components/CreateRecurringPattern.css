@@ -1,0 +1,175 @@
+.create-recurring-pattern {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.create-recurring-pattern h3 {
+  margin: 0 0 24px 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #374151;
+  font-size: 14px;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #2563eb;
+}
+
+.form-group small {
+  display: block;
+  margin-top: 4px;
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.subtask-input {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.subtask-input input {
+  flex: 1;
+}
+
+.btn-add-subtask {
+  padding: 10px 16px;
+  background: #f3f4f6;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btn-add-subtask:hover {
+  background: #e5e7eb;
+  border-color: #d1d5db;
+}
+
+.subtask-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.subtask-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: #f9fafb;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  transition: background 0.2s;
+}
+
+.subtask-list li:hover {
+  background: #f3f4f6;
+}
+
+.subtask-list li span {
+  flex: 1;
+  color: #374151;
+  font-size: 14px;
+}
+
+.subtask-list li button {
+  background: none;
+  border: none;
+  color: #dc2626;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0 8px;
+  transition: transform 0.2s;
+}
+
+.subtask-list li button:hover {
+  transform: scale(1.2);
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid #f3f4f6;
+}
+
+.form-actions button {
+  flex: 1;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.btn-secondary:hover {
+  background: #e5e7eb;
+}

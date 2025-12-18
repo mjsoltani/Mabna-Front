@@ -8,6 +8,7 @@ import Notifications from './Notifications';
 import Teams from './Teams';
 import NotificationBell from './NotificationBell';
 import RecurringPatterns from './RecurringPatterns';
+import Profile from './Profile';
 
 function Dashboard({ user, token, onLogout }) {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -64,6 +65,13 @@ function Dashboard({ user, token, onLogout }) {
             <span className="nav-icon">🔄</span>
             <span>الگوهای تکرار</span>
           </button>
+          <button 
+            className={activeTab === 'profile' ? 'nav-item active' : 'nav-item'} 
+            onClick={() => setActiveTab('profile')}
+          >
+            <span className="nav-icon">👤</span>
+            <span>پروفایل</span>
+          </button>
           {user.role === 'admin' && (
             <button 
               className={activeTab === 'invitations' ? 'nav-item active' : 'nav-item'} 
@@ -99,6 +107,7 @@ function Dashboard({ user, token, onLogout }) {
               {activeTab === 'keyresults' && 'نتایج کلیدی'}
               {activeTab === 'tasks' && 'وظایف'}
               {activeTab === 'recurring' && 'الگوهای تکرار'}
+              {activeTab === 'profile' && 'پروفایل'}
               {activeTab === 'teams' && 'تیم‌ها'}
               {activeTab === 'invitations' && 'دعوت کاربران'}
             </h1>
@@ -127,6 +136,7 @@ function Dashboard({ user, token, onLogout }) {
           {activeTab === 'keyresults' && <Objectives token={token} showOnlyKRs={true} />}
           {activeTab === 'tasks' && <TasksV2 token={token} focusTaskId={focusTaskId} />}
           {activeTab === 'recurring' && <RecurringPatterns token={token} />}
+          {activeTab === 'profile' && <Profile token={token} user={user} />}
           {activeTab === 'teams' && <Teams token={token} user={user} />}
           {activeTab === 'invitations' && <Invitations token={token} />}
         </div>

@@ -587,3 +587,96 @@
   font-weight: 600;
   transition: all 0.2s;
 }
+
+/* Deadline Styles */
+.task-deadline {
+  margin-top: 12px;
+}
+
+.deadline-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.deadline-badge.normal {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.deadline-badge.urgent {
+  background: #fff3e0;
+  color: #f57c00;
+}
+
+.deadline-badge.today {
+  background: #fce4ec;
+  color: #c2185b;
+}
+
+.deadline-badge.overdue {
+  background: #ffebee;
+  color: #d32f2f;
+  font-weight: 600;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+.deadline-icon {
+  font-size: 16px;
+}
+
+.deadline-date {
+  font-weight: 600;
+}
+
+.deadline-status {
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+/* Date Input */
+.date-input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.date-input:focus {
+  outline: none;
+  border-color: #2563eb;
+}
+
+.btn-clear-date {
+  margin-top: 8px;
+  padding: 6px 12px;
+  background: #fee2e2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.btn-clear-date:hover {
+  background: #fecaca;
+  border-color: #fca5a5;
+}

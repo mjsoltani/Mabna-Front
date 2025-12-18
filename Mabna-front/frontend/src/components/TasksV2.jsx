@@ -3,6 +3,7 @@ import API_BASE_URL from '../config';
 import './TasksV2.css';
 import MentionTextarea from './MentionTextarea';
 import DescriptionWithMentions from './DescriptionWithMentions';
+import { getDeadlineStatus, formatDateToPersian, formatDateForInput, getTodayDate } from '../utils/deadlineUtils';
 
 function TasksV2({ token, focusTaskId }) {
   const [tasks, setTasks] = useState([]);
@@ -28,7 +29,8 @@ function TasksV2({ token, focusTaskId }) {
     key_result_ids: [],
     status: 'todo',
     type: 'routine',
-    subtasks: []
+    subtasks: [],
+    due_date: ''
   });
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
   const [editingDescription, setEditingDescription] = useState(null);
@@ -85,7 +87,7 @@ function TasksV2({ token, focusTaskId }) {
       if (response.ok) {
         await fetchData();
         setShowModal(false);
-        setFormData({ title: '', description: '', assignee_id: '', key_result_ids: [], status: 'todo', type: 'routine', subtasks: [] });
+        setFormData({ title: '', description: '', assignee_id: '', key_result_ids: [], status: 'todo', type: 'routine', subtasks: [], due_date: '' });
         setNewSubtaskTitle('');
       }
     } catch (error) {
@@ -436,6 +438,26 @@ function TasksV2({ token, focusTaskId }) {
               </div>
 
               <div className="form-group">
+                <label>سررسید (اختیاری)</label>
+                <input
+                  type="date"
+                  value={formData.due_date}
+                  onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
+                  min={getTodayDate()}
+                  className="date-input"
+                />
+                {formData.due_date && (
+                  <button
+                    type="button"
+                    className="btn-clear-date"
+                    onClick={() => setFormData({ ...formData, due_date: '' })}
+                  >
+                    ✕ حذف سررسید
+                  </button>
+                )}
+              </div>
+
+              <div className="form-group">
                 <label>چک‌لیست (اختیاری)</label>
                 <div className="subtasks-input">
                   <input
@@ -688,6 +710,26 @@ function TasksV2({ token, focusTaskId }) {
                 </span>
               </div>
             </div>
+
+            {task.due_date && (
+              <div className="task-deadline">
+                {(() => {
+                  const deadlineInfo = getDeadlineStatus(task.due_date);
+                  return (
+                    <div className={`deadline-badge ${deadlineInfo.status}`}>
+                      <span className="deadline-icon">📅</span>
+                      <span className="deadline-date">{formatDateToPersian(task.due_date)}</span>
+                      <span className="deadline-status">
+                        {deadlineInfo.status === 'overdue' && `${deadlineInfo.days} روز گذشته`}
+                        {deadlineInfo.status === 'today' && 'امروز'}
+                        {deadlineInfo.status === 'urgent' && `${deadlineInfo.days} روز مانده`}
+                        {deadlineInfo.status === 'normal' && `${deadlineInfo.days} روز مانده`}
+                      </span>
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
 
             {task.subtasks && task.subtasks.length > 0 && (
               <div className="subtasks-section">

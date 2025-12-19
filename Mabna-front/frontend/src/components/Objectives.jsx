@@ -3,6 +3,7 @@ import API_BASE_URL from '../config';
 import DatePicker from 'react-multi-date-picker';
 import persian from 'react-date-object/calendars/persian';
 import persian_fa from 'react-date-object/locales/persian_fa';
+import './Objectives.css';
 
 function Objectives({ token, showOnlyKRs }) {
   const [objectives, setObjectives] = useState([]);
@@ -11,9 +12,14 @@ function Objectives({ token, showOnlyKRs }) {
   const [showKRModal, setShowKRModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showEditKRModal, setShowEditKRModal] = useState(false);
+  const [showKRReportModal, setShowKRReportModal] = useState(false);
   const [selectedObjective, setSelectedObjective] = useState(null);
+  const [selectedKR, setSelectedKR] = useState(null);
   const [reportData, setReportData] = useState(null);
+  const [krReportData, setKrReportData] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [deleteKRConfirm, setDeleteKRConfirm] = useState(null);
   const [formData, setFormData] = useState({
     title: '',
     start_date: '',
@@ -162,6 +168,64 @@ function Objectives({ token, showOnlyKRs }) {
       }
     } catch (error) {
       console.error('Error fetching report:', error);
+    }
+  };
+
+  const fetchKRReport = async (krId) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/keyresults/${krId}/report`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setKrReportData(data);
+        setShowKRReportModal(true);
+      }
+    } catch (error) {
+      console.error('Error fetching KR report:', error);
+    }
+  };
+
+  const handleEditKR = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/keyresults/${selectedKR.id}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(krFormData)
+      });
+      if (response.ok) {
+        await fetchObjectives();
+        setShowEditKRModal(false);
+        setSelectedKR(null);
+        setKrFormData({ title: '', initial_value: 0, target_value: 0 });
+      } else {
+        const error = await response.json();
+        alert(error.error || 'خطا در ویرایش نتیجه کلیدی');
+      }
+    } catch (error) {
+      console.error('Error updating key result:', error);
+    }
+  };
+
+  const handleDeleteKR = async (krId) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/keyresults/${krId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        await fetchObjectives();
+        setDeleteKRConfirm(null);
+      } else {
+        const error = await response.json();
+        alert(error.error || 'خطا در حذف نتیجه کلیدی');
+      }
+    } catch (error) {
+      console.error('Error deleting key result:', error);
     }
   };
 
@@ -385,6 +449,168 @@ function Objectives({ token, showOnlyKRs }) {
         </div>
       )}
 
+      {showEditKRModal && selectedKR && (
+        <div className="modal-overlay" onClick={() => setShowEditKRModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h3>ویرایش نتیجه کلیدی</h3>
+            <form onSubmit={handleEditKR}>
+              <div className="form-group">
+                <label>عنوان</label>
+                <input
+                  type="text"
+                  value={krFormData.title}
+                  onChange={(e) => setKrFormData({ ...krFormData, title: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label>مقدار اولیه</label>
+                <input
+                  type="number"
+                  value={krFormData.initial_value}
+                  onChange={(e) => setKrFormData({ ...krFormData, initial_value: Number(e.target.value) })}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>مقدار هدف</label>
+                <input
+                  type="number"
+                  value={krFormData.target_value}
+                  onChange={(e) => setKrFormData({ ...krFormData, target_value: Number(e.target.value) })}
+                  required
+                />
+              </div>
+
+              <div className="form-actions">
+                <button type="submit" className="btn-primary">ذخیره</button>
+                <button type="button" className="btn-secondary" onClick={() => setShowEditKRModal(false)}>
+                  انصراف
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {deleteKRConfirm && (
+        <div className="modal-overlay" onClick={() => setDeleteKRConfirm(null)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h3>حذف نتیجه کلیدی</h3>
+            <p>آیا مطمئن هستید که می‌خواهید این نتیجه کلیدی را حذف کنید؟</p>
+            <p className="warning-text">⚠️ ارتباط با وظایف قطع می‌شود ولی خود وظایف حذف نمی‌شوند.</p>
+            <div className="form-actions">
+              <button
+                className="btn-delete"
+                onClick={() => handleDeleteKR(deleteKRConfirm)}
+              >
+                حذف
+              </button>
+              <button
+                className="btn-secondary"
+                onClick={() => setDeleteKRConfirm(null)}
+              >
+                انصراف
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showKRReportModal && krReportData && (
+        <div className="modal-overlay" onClick={() => setShowKRReportModal(false)}>
+          <div className="modal-content large" onClick={(e) => e.stopPropagation()}>
+            <h3>گزارش نتیجه کلیدی: {krReportData.title}</h3>
+            
+            <div className="kr-report-header">
+              <div className="report-badge">
+                <span className="badge-label">هدف:</span>
+                <span className="badge-value">{krReportData.objective.title}</span>
+              </div>
+              <div className="report-values">
+                <span>مقدار اولیه: <strong>{krReportData.initial_value}</strong></span>
+                <span>مقدار هدف: <strong>{krReportData.target_value}</strong></span>
+                <span>مقدار فعلی: <strong>{krReportData.current_value}</strong></span>
+              </div>
+            </div>
+
+            <div className="progress-section">
+              <div className="progress-bar-large">
+                <div
+                  className="progress-fill-large"
+                  style={{ width: `${krReportData.progress_percentage}%` }}
+                >
+                  {krReportData.progress_percentage}%
+                </div>
+              </div>
+            </div>
+
+            <div className="stats-grid">
+              <div className="stat-box">
+                <div className="stat-value">{krReportData.stats.total_tasks}</div>
+                <div className="stat-label">کل وظایف</div>
+              </div>
+              <div className="stat-box success">
+                <div className="stat-value">{krReportData.stats.completed_tasks}</div>
+                <div className="stat-label">تکمیل شده</div>
+              </div>
+              <div className="stat-box warning">
+                <div className="stat-value">{krReportData.stats.in_progress_tasks}</div>
+                <div className="stat-label">در حال انجام</div>
+              </div>
+              <div className="stat-box info">
+                <div className="stat-value">{krReportData.stats.todo_tasks}</div>
+                <div className="stat-label">در انتظار</div>
+              </div>
+            </div>
+
+            {krReportData.tasks && krReportData.tasks.length > 0 && (
+              <div className="kr-tasks-section">
+                <h4>وظایف مرتبط</h4>
+                <div className="kr-tasks-list">
+                  {krReportData.tasks.map(task => (
+                    <div key={task.id} className={`kr-task-card status-${task.status}`}>
+                      <div className="task-header">
+                        <h5>{task.title}</h5>
+                        <span className={`status-badge ${task.status}`}>
+                          {task.status === 'done' ? '✅ تکمیل شده' : 
+                           task.status === 'in_progress' ? '🔄 در حال انجام' : '⏳ در انتظار'}
+                        </span>
+                      </div>
+                      <div className="task-meta">
+                        <span>👤 {task.assignee?.full_name || 'بدون مسئول'}</span>
+                        <span className={`type-badge ${task.type}`}>
+                          {task.type === 'special' ? '⭐ ویژه' : '📌 معمولی'}
+                        </span>
+                        {task.due_date && (
+                          <span>📅 {new Date(task.due_date).toLocaleDateString('fa-IR')}</span>
+                        )}
+                      </div>
+                      {task.subtasks && task.subtasks.total > 0 && (
+                        <div className="subtasks-info">
+                          <span>📋 زیروظایف: {task.subtasks.completed}/{task.subtasks.total}</span>
+                          <div className="mini-progress">
+                            <div 
+                              className="mini-progress-fill"
+                              style={{ width: `${(task.subtasks.completed / task.subtasks.total) * 100}%` }}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <button className="btn-secondary" onClick={() => setShowKRReportModal(false)}>
+              بستن
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="objectives-list">
         {objectives.map(obj => (
           <div key={obj.id} className="objective-card">
@@ -427,15 +653,52 @@ function Objectives({ token, showOnlyKRs }) {
               <div className="krs-list">
                 {obj.key_results.map(kr => (
                   <div key={kr.id} className="kr-item">
-                    <div className="kr-title">{kr.title}</div>
-                    <div className="kr-progress">
-                      <div className="progress-bar">
-                        <div
-                          className="progress-fill"
-                          style={{ width: `${kr.progress || 0}%` }}
-                        />
+                    <div className="kr-content">
+                      <div className="kr-title">{kr.title}</div>
+                      <div className="kr-values">
+                        <span className="kr-value">اولیه: {kr.initial_value}</span>
+                        <span className="kr-value">هدف: {kr.target_value}</span>
                       </div>
-                      <span className="progress-text">{kr.progress || 0}%</span>
+                      <div className="kr-progress">
+                        <div className="progress-bar">
+                          <div
+                            className="progress-fill"
+                            style={{ width: `${kr.progress || 0}%` }}
+                          />
+                        </div>
+                        <span className="progress-text">{kr.progress || 0}%</span>
+                      </div>
+                    </div>
+                    <div className="kr-actions">
+                      <button
+                        className="btn-icon"
+                        onClick={() => fetchKRReport(kr.id)}
+                        title="گزارش"
+                      >
+                        📊
+                      </button>
+                      <button
+                        className="btn-icon"
+                        onClick={() => {
+                          setSelectedKR(kr);
+                          setKrFormData({
+                            title: kr.title,
+                            initial_value: kr.initial_value,
+                            target_value: kr.target_value
+                          });
+                          setShowEditKRModal(true);
+                        }}
+                        title="ویرایش"
+                      >
+                        ✏️
+                      </button>
+                      <button
+                        className="btn-icon btn-danger"
+                        onClick={() => setDeleteKRConfirm(kr.id)}
+                        title="حذف"
+                      >
+                        🗑️
+                      </button>
                     </div>
                   </div>
                 ))}

@@ -80,6 +80,15 @@ function Dashboard({ user, token, onLogout }) {
     }
   };
 
+  const handleTaskClick = (taskId) => {
+    setActiveTab('tasks');
+    setFocusTaskId(taskId);
+  };
+
+  const handleObjectiveClick = (objectiveId) => {
+    setActiveTab('objectives');
+  };
+
   const links = [
     {
       label: 'داشبورد',

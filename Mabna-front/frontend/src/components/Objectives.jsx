@@ -3,6 +3,7 @@ import API_BASE_URL from '../config';
 import DatePicker from 'react-multi-date-picker';
 import persian from 'react-date-object/calendars/persian';
 import persian_fa from 'react-date-object/locales/persian_fa';
+import { toJalali } from '../utils/dateUtils';
 import './Objectives.css';
 
 function Objectives({ token, showOnlyKRs }) {
@@ -22,6 +23,7 @@ function Objectives({ token, showOnlyKRs }) {
   const [deleteKRConfirm, setDeleteKRConfirm] = useState(null);
   const [formData, setFormData] = useState({
     title: '',
+    description: '',
     start_date: '',
     end_date: ''
   });
@@ -71,6 +73,7 @@ function Objectives({ token, showOnlyKRs }) {
     try {
       const payload = {
         title: formData.title,
+        description: formData.description,
         start_date: toYMD(startValue),
         end_date: toYMD(endValue)
       };
@@ -85,7 +88,7 @@ function Objectives({ token, showOnlyKRs }) {
       if (response.ok) {
         await fetchObjectives();
         setShowModal(false);
-        setFormData({ title: '', start_date: '', end_date: '' });
+        setFormData({ title: '', description: '', start_date: '', end_date: '' });
         setStartValue(null);
         setEndValue(null);
       }
@@ -99,6 +102,7 @@ function Objectives({ token, showOnlyKRs }) {
     try {
       const payload = {
         title: formData.title,
+        description: formData.description,
         start_date: toYMD(editStartValue),
         end_date: toYMD(editEndValue)
       };
@@ -259,6 +263,16 @@ function Objectives({ token, showOnlyKRs }) {
               </div>
 
               <div className="form-group">
+                <label>توضیحات</label>
+                <textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="توضیحات هدف (اختیاری)"
+                  rows="3"
+                />
+              </div>
+
+              <div className="form-group">
                 <label>تاریخ شروع</label>
                 <DatePicker
                   value={startValue}
@@ -303,6 +317,16 @@ function Objectives({ token, showOnlyKRs }) {
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   required
+                />
+              </div>
+
+              <div className="form-group">
+                <label>توضیحات</label>
+                <textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="توضیحات هدف (اختیاری)"
+                  rows="3"
                 />
               </div>
 
@@ -621,7 +645,12 @@ function Objectives({ token, showOnlyKRs }) {
                   className="btn-secondary"
                   onClick={() => {
                     setSelectedObjective(obj);
-                    setFormData({ title: obj.title, start_date: obj.start_date, end_date: obj.end_date });
+                    setFormData({ 
+                      title: obj.title, 
+                      description: obj.description || '',
+                      start_date: obj.start_date, 
+                      end_date: obj.end_date 
+                    });
                     setEditStartValue(new Date(obj.start_date));
                     setEditEndValue(new Date(obj.end_date));
                     setShowEditModal(true);
@@ -645,7 +674,8 @@ function Objectives({ token, showOnlyKRs }) {
             </div>
 
             <div className="objective-info">
-              <p>📅 {obj.start_date} تا {obj.end_date}</p>
+              <p>📅 {toJalali(obj.start_date)} تا {toJalali(obj.end_date)}</p>
+              {obj.description && <p className="objective-description">📝 {obj.description}</p>}
               <p>📊 {obj.key_results?.length || 0} نتیجه کلیدی</p>
             </div>
 

@@ -1,148 +1,261 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './Dashboard.css';
 import Objectives from './Objectives';
 import TasksV2 from './TasksV2';
 import Invitations from './Invitations';
-import DashboardStats from './DashboardStats';
-import Notifications from './Notifications';
+import ModernDashboard from './ModernDashboard';
 import Teams from './Teams';
-import NotificationBell from './NotificationBell';
 import RecurringPatterns from './RecurringPatterns';
 import Profile from './Profile';
+import API_BASE_URL from '../config';
+import { Sidebar, SidebarBody, SidebarLink } from '@/components/ui/sidebar';
+import { DashboardNavbar } from '@/components/ui/dashboard-navbar';
+import { 
+  LayoutDashboard, 
+  Target, 
+  BarChart3, 
+  Users, 
+  CheckSquare, 
+  RefreshCw, 
+  UserCircle, 
+  Mail, 
+  LogOut 
+} from 'lucide-react';
+import { motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
 function Dashboard({ user, token, onLogout }) {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [focusTaskId, setFocusTaskId] = useState(null);
+  const [open, setOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    fetchNotifications();
+  }, []);
+
+  const fetchNotifications = async () => {
+    try {
+      const [notifRes, countRes] = await Promise.all([
+        fetch(`${API_BASE_URL}/api/notifications?unreadOnly=true`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }),
+        fetch(`${API_BASE_URL}/api/notifications/unread-count`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+      ]);
+
+      if (notifRes.ok) {
+        const data = await notifRes.json();
+        setNotifications(data.slice(0, 5)); // فقط 5 تای اول
+      }
+      if (countRes.ok) {
+        const data = await countRes.json();
+        setUnreadCount(data.count || 0);
+      }
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    }
+  };
+
+  const handleNotificationClick = async (notif) => {
+    try {
+      // علامت‌گذاری به عنوان خوانده شده
+      await fetch(`${API_BASE_URL}/api/notifications/${notif.id}/read`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      // اگر نوتیفیکیشن مربوط به وظیفه است، به تب وظایف برو
+      if (notif.task_id) {
+        setActiveTab('tasks');
+        setFocusTaskId(notif.task_id);
+      }
+
+      // به‌روزرسانی لیست
+      fetchNotifications();
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
+  };
+
+  const links = [
+    {
+      label: 'داشبورد',
+      href: '#',
+      icon: <LayoutDashboard className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
+      tab: 'dashboard',
+    },
+    {
+      label: 'اهداف',
+      href: '#',
+      icon: <Target className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
+      tab: 'objectives',
+    },
+    {
+      label: 'نتایج کلیدی',
+      href: '#',
+      icon: <BarChart3 className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
+      tab: 'keyresults',
+    },
+    {
+      label: 'تیم‌ها',
+      href: '#',
+      icon: <Users className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
+      tab: 'teams',
+    },
+    {
+      label: 'وظایف',
+      href: '#',
+      icon: <CheckSquare className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
+      tab: 'tasks',
+    },
+    {
+      label: 'الگوهای تکرار',
+      href: '#',
+      icon: <RefreshCw className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
+      tab: 'recurring',
+    },
+    {
+      label: 'پروفایل',
+      href: '#',
+      icon: <UserCircle className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
+      tab: 'profile',
+    },
+  ];
+
+  if (user.role === 'admin') {
+    links.push({
+      label: 'دعوت کاربران',
+      href: '#',
+      icon: <Mail className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
+      tab: 'invitations',
+    });
+  }
 
   return (
-    <div className="dashboard">
-      <aside className="sidebar">
-        <div className="sidebar-header">
-          <h2>مبنا</h2>
-          <p className="sidebar-subtitle">مدیریت برنامه‌ریزی</p>
+    <div className={cn(
+      "flex flex-col md:flex-row bg-gray-100 dark:bg-neutral-800 w-full flex-1 mx-auto border border-neutral-200 dark:border-neutral-700 overflow-hidden",
+      "h-screen"
+    )}>
+      <Sidebar open={open} setOpen={setOpen}>
+        <SidebarBody className="justify-between gap-10">
+          <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
+            {open ? <Logo /> : <LogoIcon />}
+            <div className="mt-8 flex flex-col gap-2">
+              {links.map((link, idx) => (
+                <SidebarLink 
+                  key={idx} 
+                  link={link}
+                  onClick={() => setActiveTab(link.tab)}
+                  className={activeTab === link.tab ? 'bg-neutral-200 dark:bg-neutral-700 rounded-md' : ''}
+                />
+              ))}
+            </div>
+          </div>
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2 py-2">
+              <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-white flex-shrink-0">
+                {user.full_name.charAt(0)}
+              </div>
+              <motion.div
+                animate={{
+                  display: open ? "block" : "none",
+                  opacity: open ? 1 : 0,
+                }}
+                className="flex flex-col"
+              >
+                <span className="text-sm font-medium text-neutral-700 dark:text-neutral-200">
+                  {user.full_name}
+                </span>
+                <span className="text-xs text-neutral-500 dark:text-neutral-400">
+                  {user.team?.name || user.organization?.name || '-'}
+                </span>
+              </motion.div>
+            </div>
+            <SidebarLink
+              link={{
+                label: 'خروج',
+                href: '#',
+                icon: <LogOut className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
+              }}
+              onClick={onLogout}
+            />
+          </div>
+        </SidebarBody>
+      </Sidebar>
+
+      <div className="flex flex-1 flex-col">
+        <div className="border-b bg-white dark:bg-neutral-900 px-4 md:px-10 py-4">
+          <DashboardNavbar
+            user={user}
+            notificationCount={unreadCount}
+            notifications={notifications.map(n => ({
+              id: n.id,
+              title: n.type === 'task_assigned' ? 'وظیفه جدید' : 
+                     n.type === 'task_completed' ? 'وظیفه تکمیل شد' :
+                     n.type === 'objective_updated' ? 'هدف به‌روز شد' :
+                     n.type === 'comment_added' ? 'نظر جدید' : 'اعلان',
+              message: n.message,
+              time: new Date(n.created_at).toLocaleDateString('fa-IR', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+              }),
+              task_id: n.task_id
+            }))}
+            onNotificationClick={handleNotificationClick}
+            onProfileClick={() => setActiveTab('profile')}
+            onSettingsClick={() => setActiveTab('profile')}
+            onLogout={onLogout}
+          />
         </div>
         
-        <nav className="sidebar-nav">
-          <button 
-            className={activeTab === 'dashboard' ? 'nav-item active' : 'nav-item'} 
-            onClick={() => setActiveTab('dashboard')}
-          >
-            <span className="nav-icon">📈</span>
-            <span>داشبورد</span>
-          </button>
-          <button 
-            className={activeTab === 'objectives' ? 'nav-item active' : 'nav-item'} 
-            onClick={() => setActiveTab('objectives')}
-          >
-            <span className="nav-icon">🎯</span>
-            <span>اهداف</span>
-          </button>
-          <button 
-            className={activeTab === 'keyresults' ? 'nav-item active' : 'nav-item'} 
-            onClick={() => setActiveTab('keyresults')}
-          >
-            <span className="nav-icon">📊</span>
-            <span>نتایج کلیدی</span>
-          </button>
-          <button 
-            className={activeTab === 'teams' ? 'nav-item active' : 'nav-item'} 
-            onClick={() => setActiveTab('teams')}
-          >
-            <span className="nav-icon">👥</span>
-            <span>تیم‌ها</span>
-          </button>
-          <button 
-            className={activeTab === 'tasks' ? 'nav-item active' : 'nav-item'} 
-            onClick={() => setActiveTab('tasks')}
-          >
-            <span className="nav-icon">✅</span>
-            <span>وظایف</span>
-          </button>
-          <button 
-            className={activeTab === 'recurring' ? 'nav-item active' : 'nav-item'} 
-            onClick={() => setActiveTab('recurring')}
-          >
-            <span className="nav-icon">🔄</span>
-            <span>الگوهای تکرار</span>
-          </button>
-          <button 
-            className={activeTab === 'profile' ? 'nav-item active' : 'nav-item'} 
-            onClick={() => setActiveTab('profile')}
-          >
-            <span className="nav-icon">👤</span>
-            <span>پروفایل</span>
-          </button>
-          {user.role === 'admin' && (
-            <button 
-              className={activeTab === 'invitations' ? 'nav-item active' : 'nav-item'} 
-              onClick={() => setActiveTab('invitations')}
-            >
-              <span className="nav-icon">📧</span>
-              <span>دعوت کاربران</span>
-            </button>
-          )}
-        </nav>
-
-        <div className="sidebar-footer">
-          <div className="user-info">
-            <div className="user-avatar">{user.full_name.charAt(0)}</div>
-            <div className="user-details">
-              <div className="user-name">{user.full_name}</div>
-              <div className="org-name">نام تیم: {user.team?.name || user.organization?.name || '-'}</div>
-            </div>
-          </div>
-          <button onClick={onLogout} className="btn-logout">
-            <span>خروج</span>
-            <span>←</span>
-          </button>
-        </div>
-      </aside>
-
-      <main className="main-content">
-        <header className="content-header">
-          <div className="header-row">
-            <h1>
-              {activeTab === 'dashboard' && 'داشبورد'}
-              {activeTab === 'objectives' && 'اهداف'}
-              {activeTab === 'keyresults' && 'نتایج کلیدی'}
-              {activeTab === 'tasks' && 'وظایف'}
-              {activeTab === 'recurring' && 'الگوهای تکرار'}
-              {activeTab === 'profile' && 'پروفایل'}
-              {activeTab === 'teams' && 'تیم‌ها'}
-              {activeTab === 'invitations' && 'دعوت کاربران'}
-            </h1>
-            <div className="header-actions">
-              <NotificationBell 
-                token={token}
-                onTaskClick={(taskId) => {
-                  setActiveTab('tasks');
-                  setFocusTaskId(taskId);
-                }}
-              />
-              <Notifications 
+        <div className="p-2 md:p-10 bg-white dark:bg-neutral-900 flex flex-col gap-2 flex-1 w-full h-full overflow-auto">
+          <div className="flex-1">
+            {activeTab === 'dashboard' && (
+              <ModernDashboard 
                 token={token} 
-                onNavigateToTask={(taskId) => {
-                  setActiveTab('tasks');
-                  setFocusTaskId(taskId);
+                onObjectiveClick={(objectiveId) => {
+                  setActiveTab('objectives');
                 }}
               />
-            </div>
+            )}
+            {activeTab === 'objectives' && <Objectives token={token} />}
+            {activeTab === 'keyresults' && <Objectives token={token} showOnlyKRs={true} />}
+            {activeTab === 'tasks' && <TasksV2 token={token} focusTaskId={focusTaskId} />}
+            {activeTab === 'recurring' && <RecurringPatterns token={token} />}
+            {activeTab === 'profile' && <Profile token={token} user={user} />}
+            {activeTab === 'teams' && <Teams token={token} user={user} />}
+            {activeTab === 'invitations' && <Invitations token={token} />}
           </div>
-        </header>
-
-        <div className="content-body">
-          {activeTab === 'dashboard' && <DashboardStats token={token} />}
-          {activeTab === 'objectives' && <Objectives token={token} />}
-          {activeTab === 'keyresults' && <Objectives token={token} showOnlyKRs={true} />}
-          {activeTab === 'tasks' && <TasksV2 token={token} focusTaskId={focusTaskId} />}
-          {activeTab === 'recurring' && <RecurringPatterns token={token} />}
-          {activeTab === 'profile' && <Profile token={token} user={user} />}
-          {activeTab === 'teams' && <Teams token={token} user={user} />}
-          {activeTab === 'invitations' && <Invitations token={token} />}
         </div>
-      </main>
+      </div>
     </div>
   );
 }
+
+const Logo = () => {
+  return (
+    <div className="font-normal flex space-x-2 items-center text-sm text-black py-1 relative z-20">
+      <div className="h-5 w-6 bg-primary rounded-br-lg rounded-tr-sm rounded-tl-lg rounded-bl-sm flex-shrink-0" />
+      <motion.span
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="font-medium text-black dark:text-white whitespace-pre mr-2"
+      >
+        مبنا
+      </motion.span>
+    </div>
+  );
+};
+
+const LogoIcon = () => {
+  return (
+    <div className="font-normal flex space-x-2 items-center text-sm text-black py-1 relative z-20">
+      <div className="h-5 w-6 bg-primary rounded-br-lg rounded-tr-sm rounded-tl-lg rounded-bl-sm flex-shrink-0" />
+    </div>
+  );
+};
 
 export default Dashboard;

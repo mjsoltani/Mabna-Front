@@ -1,23 +1,30 @@
 import { useState, useEffect } from 'react';
 import API_BASE_URL from '../config';
+import { toJalali } from '../utils/dateUtils';
 import './DashboardStats.css';
 
-function DashboardStats({ token }) {
+function DashboardStats({ token, onObjectiveClick }) {
   const [stats, setStats] = useState(null);
   const [dashboard, setDashboard] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [timeFilter, setTimeFilter] = useState('all'); // all, week, month, quarter
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [timeFilter]);
 
   const fetchData = async () => {
     try {
+      const params = new URLSearchParams();
+      if (timeFilter !== 'all') {
+        params.append('period', timeFilter);
+      }
+      
       const [statsRes, dashboardRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/api/dashboard/stats`, {
+        fetch(`${API_BASE_URL}/api/dashboard/stats?${params}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         }),
-        fetch(`${API_BASE_URL}/api/dashboard`, {
+        fetch(`${API_BASE_URL}/api/dashboard?${params}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         })
       ]);
@@ -47,6 +54,37 @@ function DashboardStats({ token }) {
 
   return (
     <div className="dashboard-container">
+      {/* فیلتر زمانی */}
+      <div className="time-filter-section">
+        <h2 className="section-title">داشبورد</h2>
+        <div className="time-filter-buttons">
+          <button 
+            className={`filter-btn ${timeFilter === 'all' ? 'active' : ''}`}
+            onClick={() => setTimeFilter('all')}
+          >
+            همه
+          </button>
+          <button 
+            className={`filter-btn ${timeFilter === 'week' ? 'active' : ''}`}
+            onClick={() => setTimeFilter('week')}
+          >
+            هفته اخیر
+          </button>
+          <button 
+            className={`filter-btn ${timeFilter === 'month' ? 'active' : ''}`}
+            onClick={() => setTimeFilter('month')}
+          >
+            ماه اخیر
+          </button>
+          <button 
+            className={`filter-btn ${timeFilter === 'quarter' ? 'active' : ''}`}
+            onClick={() => setTimeFilter('quarter')}
+          >
+            سه ماه اخیر
+          </button>
+        </div>
+      </div>
+
       {/* کارت‌های آمار */}
       <div className="stats-grid">
         <div className="stat-card blue">
@@ -97,7 +135,11 @@ function DashboardStats({ token }) {
               const status = progress >= 70 ? 'ontrack' : progress >= 40 ? 'atrisk' : 'behind';
               const completedKRs = krList.filter(k => (k.progress || 0) >= 100).length;
               return (
-                <div key={obj.id} className="objective-progress-card">
+                <div 
+                  key={obj.id} 
+                  className="objective-progress-card clickable"
+                  onClick={() => onObjectiveClick && onObjectiveClick(obj.id)}
+                >
                   <div className="objective-header">
                     <h3 className="objective-title">{obj.title}</h3>
                     <div className={`status-chip ${status}`}>
@@ -115,7 +157,7 @@ function DashboardStats({ token }) {
                   <div className="objective-meta">
                     <span className="meta-item">📊 {krList.length} نتیجه کلیدی</span>
                     <span className="meta-item">✅ {completedKRs}/{krList.length} تکمیل</span>
-                    <span className="meta-item">{obj.start_date} تا {obj.end_date}</span>
+                    <span className="meta-item">📅 {toJalali(obj.start_date)} تا {toJalali(obj.end_date)}</span>
                   </div>
 
                   {/* نتایج کلیدی */}

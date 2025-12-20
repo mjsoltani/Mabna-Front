@@ -71,6 +71,14 @@
   color: #6b7280;
 }
 
+.objective-description {
+  font-style: italic;
+  color: #4b5563 !important;
+  padding: 8px 0;
+  border-top: 1px solid #e5e7eb;
+  margin-top: 8px !important;
+}
+
 /* Key Results List */
 .krs-list {
   margin: 20px 0;

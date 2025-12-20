@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import API_BASE_URL from '../config';
 import './Profile.css';
 
-function Profile({ token, user }) {
+function Profile({ token, user, onTaskClick, onObjectiveClick }) {
   const [profile, setProfile] = useState(null);
   const [activity, setActivity] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -371,7 +371,12 @@ function Profile({ token, user }) {
               ) : (
                 <div className="activity-list">
                   {activity.recent_tasks.map(task => (
-                    <div key={task.id} className="activity-item">
+                    <div 
+                      key={task.id} 
+                      className="activity-item clickable"
+                      onClick={() => onTaskClick && onTaskClick(task.id)}
+                      style={{ cursor: 'pointer' }}
+                    >
                       <div className="activity-icon">📋</div>
                       <div className="activity-content">
                         <strong>{task.title}</strong>
@@ -393,7 +398,12 @@ function Profile({ token, user }) {
               ) : (
                 <div className="activity-list">
                   {activity.recent_comments.map(comment => (
-                    <div key={comment.id} className="activity-item">
+                    <div 
+                      key={comment.id} 
+                      className="activity-item clickable"
+                      onClick={() => onTaskClick && comment.task && onTaskClick(comment.task.id)}
+                      style={{ cursor: 'pointer' }}
+                    >
                       <div className="activity-icon">💬</div>
                       <div className="activity-content">
                         <p>{comment.content}</p>

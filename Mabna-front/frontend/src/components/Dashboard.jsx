@@ -225,7 +225,14 @@ function Dashboard({ user, token, onLogout }) {
             {activeTab === 'keyresults' && <Objectives token={token} showOnlyKRs={true} />}
             {activeTab === 'tasks' && <TasksV2 token={token} focusTaskId={focusTaskId} />}
             {activeTab === 'recurring' && <RecurringPatterns token={token} />}
-            {activeTab === 'profile' && <Profile token={token} user={user} />}
+            {activeTab === 'profile' && (
+              <Profile 
+                token={token} 
+                user={user} 
+                onTaskClick={handleTaskClick}
+                onObjectiveClick={handleObjectiveClick}
+              />
+            )}
             {activeTab === 'teams' && <Teams token={token} user={user} />}
             {activeTab === 'invitations' && <Invitations token={token} />}
           </div>

@@ -377,13 +377,35 @@ function Profile({ token, user, onTaskClick, onObjectiveClick }) {
                       onClick={() => onTaskClick && onTaskClick(task.id)}
                       style={{ cursor: 'pointer' }}
                     >
-                      <div className="activity-icon">📋</div>
+                      <div className="activity-icon">
+                        {task.priority === 'high' ? '🔴' : task.priority === 'medium' ? '🟡' : '🟢'}
+                      </div>
                       <div className="activity-content">
-                        <strong>{task.title}</strong>
-                        <span className={`status-badge ${task.status}`}>
-                          {task.status === 'done' ? 'انجام شده' : task.status === 'in_progress' ? 'در حال انجام' : 'در انتظار'}
-                        </span>
-                        <small>{new Date(task.createdAt).toLocaleDateString('fa-IR')}</small>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                          <strong>{task.title}</strong>
+                          <span className={`status-badge ${task.status}`}>
+                            {task.status === 'done' ? 'انجام شده' : task.status === 'in_progress' ? 'در حال انجام' : 'در انتظار'}
+                          </span>
+                          {task.is_creator && <span style={{ fontSize: '12px', color: '#6366f1' }}>👤 سازنده</span>}
+                          {task.is_assignee && <span style={{ fontSize: '12px', color: '#10b981' }}>✅ مسئول</span>}
+                        </div>
+                        {task.description && (
+                          <p style={{ fontSize: '13px', color: '#6b7280', margin: '4px 0' }}>
+                            {task.description.length > 60 ? task.description.substring(0, 60) + '...' : task.description}
+                          </p>
+                        )}
+                        <div style={{ display: 'flex', gap: '12px', fontSize: '12px', color: '#9ca3af' }}>
+                          <small>📅 {new Date(task.created_at).toLocaleDateString('fa-IR')}</small>
+                          {task.deadline && (
+                            <small>⏰ {new Date(task.deadline).toLocaleDateString('fa-IR')}</small>
+                          )}
+                          {task.subtasks && task.subtasks.total > 0 && (
+                            <small>📝 {task.subtasks.completed}/{task.subtasks.total}</small>
+                          )}
+                          {task.assignee && (
+                            <small>👤 {task.assignee.full_name}</small>
+                          )}
+                        </div>
                       </div>
                     </div>
                   ))}

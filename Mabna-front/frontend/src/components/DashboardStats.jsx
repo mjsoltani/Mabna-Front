@@ -3,7 +3,7 @@ import API_BASE_URL from '../config';
 import { toJalali } from '../utils/dateUtils';
 import './DashboardStats.css';
 
-function DashboardStats({ token, onObjectiveClick }) {
+function DashboardStats({ token, onObjectiveClick, onTaskClick }) {
   const [stats, setStats] = useState(null);
   const [dashboard, setDashboard] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -217,6 +217,70 @@ function DashboardStats({ token, onObjectiveClick }) {
             </div>
           </div>
 
+          {/* وظایف اخیر */}
+          {dashboard?.recent_tasks && dashboard.recent_tasks.length > 0 && (
+            <div className="recent-tasks-section" style={{ marginTop: '24px' }}>
+              <h3 className="section-subtitle">وظایف اخیر</h3>
+              <div className="tasks-list">
+                {dashboard.recent_tasks.slice(0, 5).map(task => (
+                  <div 
+                    key={task.id} 
+                    className="task-item clickable"
+                    onClick={() => onTaskClick && onTaskClick(task.id)}
+                    style={{ 
+                      padding: '16px',
+                      background: '#f9fafb',
+                      borderRadius: '12px',
+                      border: '1px solid #e5e7eb',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s',
+                      marginBottom: '12px'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = '#e0e7ff';
+                      e.currentTarget.style.borderColor = '#818cf8';
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = '#f9fafb';
+                      e.currentTarget.style.borderColor = '#e5e7eb';
+                      e.currentTarget.style.transform = 'translateY(0)';
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '20px' }}>
+                        {task.priority === 'high' ? '🔴' : task.priority === 'medium' ? '🟡' : '🟢'}
+                      </span>
+                      <strong style={{ flex: 1 }}>{task.title}</strong>
+                      <span className={`status-badge ${task.status}`} style={{
+                        padding: '4px 12px',
+                        borderRadius: '12px',
+                        fontSize: '12px',
+                        fontWeight: '600'
+                      }}>
+                        {task.status === 'done' ? 'انجام شده' : task.status === 'in_progress' ? 'در حال انجام' : 'در انتظار'}
+                      </span>
+                    </div>
+                    {task.description && (
+                      <p style={{ fontSize: '13px', color: '#6b7280', margin: '8px 0' }}>
+                        {task.description.length > 80 ? task.description.substring(0, 80) + '...' : task.description}
+                      </p>
+                    )}
+                    <div style={{ display: 'flex', gap: '16px', fontSize: '12px', color: '#9ca3af', flexWrap: 'wrap' }}>
+                      {task.assignee && <span>👤 {task.assignee.full_name}</span>}
+                      {task.deadline && <span>⏰ {new Date(task.deadline).toLocaleDateString('fa-IR')}</span>}
+                      {task.subtasks && task.subtasks.total > 0 && (
+                        <span>📝 {task.subtasks.completed}/{task.subtasks.total} زیروظیفه</span>
+                      )}
+                      {task.is_creator && <span style={{ color: '#6366f1' }}>سازنده</span>}
+                      {task.is_assignee && <span style={{ color: '#10b981' }}>مسئول</span>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* نمودار میله‌ای */}
           <div className="chart-container">
             <h3 className="chart-title">نمودار توزیع وظایف</h3>
@@ -331,6 +395,48 @@ function DashboardStats({ token, onObjectiveClick }) {
       {/* آمار تفصیلی */}
       <div className="detailed-stats-section">
         <h2 className="section-title">آمار تفصیلی</h2>
+        
+        {/* خلاصه وظایف */}
+        {dashboard?.tasks_summary && (
+          <div className="tasks-summary-grid" style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
+            gap: '16px',
+            marginBottom: '24px'
+          }}>
+            <div className="summary-card" style={{
+              padding: '20px',
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              borderRadius: '16px',
+              color: 'white',
+              boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)'
+            }}>
+              <div style={{ fontSize: '32px', fontWeight: '700' }}>{dashboard.tasks_summary.total}</div>
+              <div style={{ fontSize: '14px', opacity: 0.9 }}>کل وظایف</div>
+            </div>
+            <div className="summary-card" style={{
+              padding: '20px',
+              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+              borderRadius: '16px',
+              color: 'white',
+              boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
+            }}>
+              <div style={{ fontSize: '32px', fontWeight: '700' }}>{dashboard.tasks_summary.my_tasks}</div>
+              <div style={{ fontSize: '14px', opacity: 0.9 }}>وظایف من</div>
+            </div>
+            <div className="summary-card" style={{
+              padding: '20px',
+              background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+              borderRadius: '16px',
+              color: 'white',
+              boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)'
+            }}>
+              <div style={{ fontSize: '32px', fontWeight: '700' }}>{dashboard.tasks_summary.created_by_me}</div>
+              <div style={{ fontSize: '14px', opacity: 0.9 }}>ساخته شده توسط من</div>
+            </div>
+          </div>
+        )}
+
         <div className="detailed-grid">
           <div className="detail-card">
             <div className="detail-header">

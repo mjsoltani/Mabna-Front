@@ -5,7 +5,7 @@ import API_BASE_URL from '../config';
 import { toJalali } from '../utils/dateUtils';
 import './ModernDashboard.css';
 
-function ModernDashboard({ token, onObjectiveClick }) {
+function ModernDashboard({ token, onObjectiveClick, onTaskClick }) {
   const [stats, setStats] = useState(null);
   const [dashboard, setDashboard] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -246,6 +246,64 @@ function ModernDashboard({ token, onObjectiveClick }) {
           <h3 className="section-title">اهداف فعال</h3>
           <button className="view-all-btn">مشاهده همه</button>
         </div>
+
+        {/* وظایف اخیر */}
+        {dashboard?.recent_tasks && dashboard.recent_tasks.length > 0 && (
+          <div className="recent-tasks-modern" style={{ marginBottom: '32px' }}>
+            <h4 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '16px', color: '#1e293b' }}>
+              📋 وظایف اخیر
+            </h4>
+            <div style={{ display: 'grid', gap: '12px' }}>
+              {dashboard.recent_tasks.slice(0, 5).map(task => (
+                <div 
+                  key={task.id}
+                  className="task-item-modern glass-card clickable"
+                  onClick={() => onTaskClick && onTaskClick(task.id)}
+                  style={{
+                    padding: '16px',
+                    borderRadius: '12px',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    background: 'rgba(255,255,255,0.05)'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 8px 24px rgba(99, 102, 241, 0.2)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '20px' }}>
+                      {task.priority === 'high' ? '🔴' : task.priority === 'medium' ? '🟡' : '🟢'}
+                    </span>
+                    <strong style={{ flex: 1, fontSize: '14px' }}>{task.title}</strong>
+                    <span className={`status-badge ${task.status === 'done' ? 'success' : task.status === 'in_progress' ? 'warning' : 'neutral'}`} style={{
+                      padding: '4px 12px',
+                      borderRadius: '12px',
+                      fontSize: '11px',
+                      fontWeight: '600'
+                    }}>
+                      {task.status === 'done' ? 'تکمیل' : task.status === 'in_progress' ? 'در حال انجام' : 'در انتظار'}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', gap: '12px', fontSize: '12px', color: '#94a3b8', flexWrap: 'wrap' }}>
+                    {task.assignee && <span>👤 {task.assignee.full_name}</span>}
+                    {task.deadline && <span>⏰ {new Date(task.deadline).toLocaleDateString('fa-IR')}</span>}
+                    {task.subtasks && task.subtasks.total > 0 && (
+                      <span>📝 {task.subtasks.completed}/{task.subtasks.total}</span>
+                    )}
+                    {task.is_creator && <span style={{ color: '#6366f1' }}>سازنده</span>}
+                    {task.is_assignee && <span style={{ color: '#10b981' }}>مسئول</span>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         
         <div className="objectives-grid">
           {dashboard?.objectives?.slice(0, 6).map(obj => {

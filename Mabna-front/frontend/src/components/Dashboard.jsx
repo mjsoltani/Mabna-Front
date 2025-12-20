@@ -219,6 +219,7 @@ function Dashboard({ user, token, onLogout }) {
                 onObjectiveClick={(objectiveId) => {
                   setActiveTab('objectives');
                 }}
+                onTaskClick={handleTaskClick}
               />
             )}
             {activeTab === 'objectives' && <Objectives token={token} />}

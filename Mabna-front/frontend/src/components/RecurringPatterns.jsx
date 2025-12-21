@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react';
 import API_BASE_URL from '../config';
 import CreateRecurringPattern from './CreateRecurringPattern';
+import EditRecurringPattern from './EditRecurringPattern';
 import './RecurringPatterns.css';
 
 function RecurringPatterns({ token }) {
   const [patterns, setPatterns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editPatternId, setEditPatternId] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
 
   useEffect(() => {
@@ -133,6 +136,26 @@ function RecurringPatterns({ token }) {
         </div>
       )}
 
+      {showEditModal && editPatternId && (
+        <div className="modal-overlay" onClick={() => setShowEditModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <EditRecurringPattern
+              token={token}
+              patternId={editPatternId}
+              onSuccess={() => {
+                setShowEditModal(false);
+                setEditPatternId(null);
+                fetchPatterns();
+              }}
+              onCancel={() => {
+                setShowEditModal(false);
+                setEditPatternId(null);
+              }}
+            />
+          </div>
+        </div>
+      )}
+
       {deleteConfirm && (
         <div className="modal-overlay" onClick={() => setDeleteConfirm(null)}>
           <div className="modal-content small" onClick={(e) => e.stopPropagation()}>
@@ -240,6 +263,16 @@ function RecurringPatterns({ token }) {
                   title="ساخت دستی task"
                 >
                   ⚡ ساخت Task
+                </button>
+                <button 
+                  className="btn-action btn-edit" 
+                  onClick={() => {
+                    setEditPatternId(pattern.id);
+                    setShowEditModal(true);
+                  }}
+                  title="ویرایش"
+                >
+                  ✏️
                 </button>
                 <button 
                   className="btn-action btn-toggle" 

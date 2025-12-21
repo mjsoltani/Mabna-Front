@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import API_BASE_URL from '../config';
 import './CreateRecurringPattern.css';
+import DatePicker from 'react-multi-date-picker';
+import persian from 'react-date-object/calendars/persian';
+import persian_fa from 'react-date-object/locales/persian_fa';
 
 function CreateRecurringPattern({ token, onSuccess, onCancel }) {
   const [users, setUsers] = useState([]);
@@ -16,6 +19,8 @@ function CreateRecurringPattern({ token, onSuccess, onCancel }) {
     end_date: '',
     subtask_templates: []
   });
+  const [startDateValue, setStartDateValue] = useState(new Date());
+  const [endDateValue, setEndDateValue] = useState(null);
   const [newSubtask, setNewSubtask] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -25,7 +30,7 @@ function CreateRecurringPattern({ token, onSuccess, onCancel }) {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/organization/users`, {
+      const response = await fetch(`${API_BASE_URL}/api/users/list`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.ok) {
@@ -209,21 +214,47 @@ function CreateRecurringPattern({ token, onSuccess, onCancel }) {
         <div className="form-row">
           <div className="form-group">
             <label>تاریخ شروع *</label>
-            <input
-              type="date"
-              value={formData.start_date}
-              onChange={(e) => setFormData({...formData, start_date: e.target.value})}
-              required
+            <DatePicker
+              value={startDateValue}
+              onChange={(date) => {
+                setStartDateValue(date);
+                if (date) {
+                  const d = date.toDate();
+                  const y = d.getFullYear();
+                  const m = String(d.getMonth() + 1).padStart(2, '0');
+                  const day = String(d.getDate()).padStart(2, '0');
+                  setFormData({...formData, start_date: `${y}-${m}-${day}`});
+                }
+              }}
+              calendar={persian}
+              locale={persian_fa}
+              placeholder="تاریخ شروع"
+              format="YYYY/MM/DD"
+              style={{ width: '100%' }}
             />
           </div>
 
           <div className="form-group">
             <label>تاریخ پایان</label>
-            <input
-              type="date"
-              value={formData.end_date}
-              onChange={(e) => setFormData({...formData, end_date: e.target.value})}
-              min={formData.start_date}
+            <DatePicker
+              value={endDateValue}
+              onChange={(date) => {
+                setEndDateValue(date);
+                if (date) {
+                  const d = date.toDate();
+                  const y = d.getFullYear();
+                  const m = String(d.getMonth() + 1).padStart(2, '0');
+                  const day = String(d.getDate()).padStart(2, '0');
+                  setFormData({...formData, end_date: `${y}-${m}-${day}`});
+                } else {
+                  setFormData({...formData, end_date: ''});
+                }
+              }}
+              calendar={persian}
+              locale={persian_fa}
+              placeholder="تاریخ پایان (اختیاری)"
+              format="YYYY/MM/DD"
+              style={{ width: '100%' }}
             />
             <small>خالی = تا ابد</small>
           </div>

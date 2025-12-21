@@ -33,7 +33,7 @@ function EditRecurringPattern({ token, patternId, onSuccess, onCancel }) {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/organization/users`, {
+      const response = await fetch(`${API_BASE_URL}/api/users/list`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.ok) {

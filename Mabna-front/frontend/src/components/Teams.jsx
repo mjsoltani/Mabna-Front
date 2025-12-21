@@ -78,7 +78,7 @@ function Teams({ token, user }) {
 
   const fetchOrgUsers = async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/organization/users`, {
+      const res = await fetch(`${API_BASE_URL}/api/users/list`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {

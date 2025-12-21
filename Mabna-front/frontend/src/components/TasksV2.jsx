@@ -4,6 +4,9 @@ import './TasksV2.css';
 import MentionTextarea from './MentionTextarea';
 import DescriptionWithMentions from './DescriptionWithMentions';
 import { getDeadlineStatus, formatDateToPersian, formatDateForInput, getTodayDate } from '../utils/deadlineUtils';
+import DatePicker from 'react-multi-date-picker';
+import persian from 'react-date-object/calendars/persian';
+import persian_fa from 'react-date-object/locales/persian_fa';
 
 function TasksV2({ token, focusTaskId }) {
   const [tasks, setTasks] = useState([]);
@@ -32,6 +35,7 @@ function TasksV2({ token, focusTaskId }) {
     subtasks: [],
     due_date: ''
   });
+  const [dueDateValue, setDueDateValue] = useState(null);
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
   const [editingDescription, setEditingDescription] = useState(null);
   const [tempDescription, setTempDescription] = useState('');
@@ -55,7 +59,7 @@ function TasksV2({ token, focusTaskId }) {
         fetch(`${API_BASE_URL}/api/tasks`, {
           headers: { 'Authorization': `Bearer ${token}` }
         }),
-        fetch(`${API_BASE_URL}/api/organization/users`, {
+        fetch(`${API_BASE_URL}/api/users/list`, {
           headers: { 'Authorization': `Bearer ${token}` }
         }),
         fetch(`${API_BASE_URL}/api/keyresults`, {
@@ -439,18 +443,34 @@ function TasksV2({ token, focusTaskId }) {
 
               <div className="form-group">
                 <label>سررسید (اختیاری)</label>
-                <input
-                  type="date"
-                  value={formData.due_date}
-                  onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
-                  min={getTodayDate()}
-                  className="date-input"
+                <DatePicker
+                  value={dueDateValue}
+                  onChange={(date) => {
+                    setDueDateValue(date);
+                    if (date) {
+                      const d = date.toDate();
+                      const y = d.getFullYear();
+                      const m = String(d.getMonth() + 1).padStart(2, '0');
+                      const day = String(d.getDate()).padStart(2, '0');
+                      setFormData({ ...formData, due_date: `${y}-${m}-${day}` });
+                    } else {
+                      setFormData({ ...formData, due_date: '' });
+                    }
+                  }}
+                  calendar={persian}
+                  locale={persian_fa}
+                  placeholder="انتخاب تاریخ سررسید"
+                  format="YYYY/MM/DD"
+                  style={{ width: '100%' }}
                 />
-                {formData.due_date && (
+                {dueDateValue && (
                   <button
                     type="button"
                     className="btn-clear-date"
-                    onClick={() => setFormData({ ...formData, due_date: '' })}
+                    onClick={() => {
+                      setDueDateValue(null);
+                      setFormData({ ...formData, due_date: '' });
+                    }}
                   >
                     ✕ حذف سررسید
                   </button>

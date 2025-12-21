@@ -23,7 +23,7 @@ function Tasks({ token }) {
         fetch(`${API_BASE_URL}/api/tasks`, {
           headers: { 'Authorization': `Bearer ${token}` }
         }),
-        fetch(`${API_BASE_URL}/api/organization/users`, {
+        fetch(`${API_BASE_URL}/api/users/list`, {
           headers: { 'Authorization': `Bearer ${token}` }
         }),
         fetch(`${API_BASE_URL}/api/keyresults`, {

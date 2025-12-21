@@ -779,25 +779,3 @@
   font-size: 13px;
   margin-bottom: 12px;
 }
-
-/* حالت تاریک برای بخش انتساب */
-@media (prefers-color-scheme: dark) {
-  .assignment-section {
-    background: #1e293b;
-    border-color: #334155;
-  }
-
-  .assignment-title {
-    color: #e2e8f0;
-  }
-
-  .assignment-hint {
-    color: #94a3b8;
-  }
-
-  .form-error {
-    background: #450a0a;
-    border-color: #7f1d1d;
-    color: #fca5a5;
-  }
-}

@@ -1,7 +1,7 @@
 // components/ui/activity-card.jsx
 "use client";
 
-import { Activity, ArrowUpRight, Plus, Target, CheckCircle2, Paperclip } from "lucide-react";
+import { Activity, ArrowUpRight, Plus, Target, CheckCircle2, Paperclip, User, Users } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -9,6 +9,8 @@ export function ActivityCard({
   category = "Activity",
   title = "Today's Progress",
   description = "",
+  assignee = null,
+  team = null,
   goalsTitle = "نتایج کلیدی",
   metrics = [],
   dailyGoals = [],
@@ -56,6 +58,23 @@ export function ActivityCard({
             <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1 line-clamp-2">
               {description}
             </p>
+          )}
+          {/* نمایش انتساب */}
+          {(assignee || team) && (
+            <div className="flex flex-wrap gap-2 mt-2">
+              {assignee && (
+                <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-xs">
+                  <User className="w-3 h-3" />
+                  {assignee.full_name}
+                </span>
+              )}
+              {team && (
+                <span className="inline-flex items-center gap-1 px-2 py-1 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 rounded-full text-xs">
+                  <Users className="w-3 h-3" />
+                  {team.name}
+                </span>
+              )}
+            </div>
           )}
         </div>
       </div>

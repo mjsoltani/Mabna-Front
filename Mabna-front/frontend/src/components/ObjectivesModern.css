@@ -738,3 +738,66 @@
     color: #71717a;
   }
 }
+
+
+/* استایل‌های بخش انتساب */
+.assignment-section {
+  background: #f8fafc;
+  padding: 16px;
+  border-radius: 12px;
+  margin: 16px 0;
+  border: 1px solid #e2e8f0;
+}
+
+.assignment-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 12px;
+}
+
+.assignment-title .required {
+  color: #ef4444;
+}
+
+.assignment-hint {
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 8px;
+  text-align: center;
+}
+
+.form-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+
+/* حالت تاریک برای بخش انتساب */
+@media (prefers-color-scheme: dark) {
+  .assignment-section {
+    background: #1e293b;
+    border-color: #334155;
+  }
+
+  .assignment-title {
+    color: #e2e8f0;
+  }
+
+  .assignment-hint {
+    color: #94a3b8;
+  }
+
+  .form-error {
+    background: #450a0a;
+    border-color: #7f1d1d;
+    color: #fca5a5;
+  }
+}

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import API_BASE_URL from '../config';
 import { ActivityCard } from './ui/activity-card';
-import { Target, TrendingUp, CheckCircle2, Calendar, Paperclip, Upload, Trash2, FileText, Image, File } from 'lucide-react';
+import { Target, TrendingUp, CheckCircle2, Calendar, Paperclip, Upload, Trash2, FileText, Image, File, User, Users } from 'lucide-react';
 import DatePicker from 'react-multi-date-picker';
 import persian from 'react-date-object/calendars/persian';
 import persian_fa from 'react-date-object/locales/persian_fa';
@@ -129,7 +129,9 @@ function ObjectivesModern({ token, showOnlyKRs }) {
     title: '',
     description: '',
     start_date: '',
-    end_date: ''
+    end_date: '',
+    assignee_id: '',
+    team_id: ''
   });
   const [startValue, setStartValue] = useState(null);
   const [endValue, setEndValue] = useState(null);
@@ -147,10 +149,13 @@ function ObjectivesModern({ token, showOnlyKRs }) {
     assignee_id: ''
   });
   const [teamMembers, setTeamMembers] = useState([]);
+  const [orgUsers, setOrgUsers] = useState([]);
+  const [teams, setTeams] = useState([]);
   const [attachments, setAttachments] = useState([]);
   const [uploadingFile, setUploadingFile] = useState(false);
   const [showAttachmentsModal, setShowAttachmentsModal] = useState(false);
   const [selectedObjectiveForAttachments, setSelectedObjectiveForAttachments] = useState(null);
+  const [formError, setFormError] = useState('');
 
   useEffect(() => {
     if (showOnlyKRs) {
@@ -159,6 +164,8 @@ function ObjectivesModern({ token, showOnlyKRs }) {
       fetchObjectives();
     }
     fetchTeamMembers();
+    fetchOrgUsers();
+    fetchTeams();
   }, [showOnlyKRs]);
 
   const fetchObjectives = async () => {
@@ -210,6 +217,50 @@ function ObjectivesModern({ token, showOnlyKRs }) {
       }
     } catch (error) {
       console.error('Error fetching team members:', error);
+    }
+  };
+
+  const fetchOrgUsers = async () => {
+    try {
+      // فعلاً از admin dashboard استفاده می‌کنیم تا endpoint اختصاصی اضافه بشه
+      const response = await fetch(`${API_BASE_URL}/api/dashboard/admin`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        // استخراج کاربران یکتا از objectives
+        const usersMap = new Map();
+        data.objectives?.forEach(obj => {
+          if (obj.createdBy) {
+            usersMap.set(obj.createdBy.user_id, obj.createdBy);
+          }
+        });
+        // اضافه کردن کاربر فعلی
+        const currentUserRes = await fetch(`${API_BASE_URL}/api/profile`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (currentUserRes.ok) {
+          const currentUser = await currentUserRes.json();
+          usersMap.set(currentUser.user_id, { user_id: currentUser.user_id, full_name: currentUser.full_name });
+        }
+        setOrgUsers(Array.from(usersMap.values()));
+      }
+    } catch (error) {
+      console.error('Error fetching org users:', error);
+    }
+  };
+
+  const fetchTeams = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/teams`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setTeams(data);
+      }
+    } catch (error) {
+      console.error('Error fetching teams:', error);
     }
   };
 
@@ -314,12 +365,22 @@ function ObjectivesModern({ token, showOnlyKRs }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setFormError('');
+
+    // Validation: حداقل یکی از assignee_id یا team_id باید انتخاب بشه
+    if (!formData.assignee_id && !formData.team_id) {
+      setFormError('لطفاً حداقل یک مسئول یا تیم انتخاب کنید');
+      return;
+    }
+
     try {
       const payload = {
         title: formData.title,
-        description: formData.description,
+        description: formData.description || null,
         start_date: toYMD(startValue),
-        end_date: toYMD(endValue)
+        end_date: toYMD(endValue),
+        assignee_id: formData.assignee_id || null,
+        team_id: formData.team_id || null
       };
       const response = await fetch(`${API_BASE_URL}/api/objectives`, {
         method: 'POST',
@@ -332,23 +393,38 @@ function ObjectivesModern({ token, showOnlyKRs }) {
       if (response.ok) {
         await fetchObjectives();
         setShowModal(false);
-        setFormData({ title: '', description: '', start_date: '', end_date: '' });
+        setFormData({ title: '', description: '', start_date: '', end_date: '', assignee_id: '', team_id: '' });
         setStartValue(null);
         setEndValue(null);
+        setFormError('');
+      } else {
+        const error = await response.json();
+        setFormError(error.error || 'خطا در ایجاد هدف');
       }
     } catch (error) {
       console.error('Error creating objective:', error);
+      setFormError('خطا در ایجاد هدف');
     }
   };
 
   const handleEditSubmit = async (e) => {
     e.preventDefault();
+    setFormError('');
+
+    // Validation: حداقل یکی از assignee_id یا team_id باید انتخاب بشه
+    if (!formData.assignee_id && !formData.team_id) {
+      setFormError('لطفاً حداقل یک مسئول یا تیم انتخاب کنید');
+      return;
+    }
+
     try {
       const payload = {
         title: formData.title,
-        description: formData.description,
+        description: formData.description || null,
         start_date: toYMD(editStartValue),
-        end_date: toYMD(editEndValue)
+        end_date: toYMD(editEndValue),
+        assignee_id: formData.assignee_id || null,
+        team_id: formData.team_id || null
       };
       const response = await fetch(`${API_BASE_URL}/api/objectives/${selectedObjective.id}`, {
         method: 'PUT',
@@ -362,9 +438,14 @@ function ObjectivesModern({ token, showOnlyKRs }) {
         await fetchObjectives();
         setShowEditModal(false);
         setSelectedObjective(null);
+        setFormError('');
+      } else {
+        const error = await response.json();
+        setFormError(error.error || 'خطا در ویرایش هدف');
       }
     } catch (error) {
       console.error('Error updating objective:', error);
+      setFormError('خطا در ویرایش هدف');
     }
   };
 
@@ -668,6 +749,8 @@ function ObjectivesModern({ token, showOnlyKRs }) {
                   category={`${toJalali(obj.start_date)} - ${toJalali(obj.end_date)}`}
                   title={obj.title}
                   description={obj.description}
+                  assignee={obj.assignee}
+                  team={obj.team}
                   goalsTitle="نتایج کلیدی"
                   metrics={cardData.metrics}
                   dailyGoals={cardData.dailyGoals}
@@ -794,9 +877,51 @@ function ObjectivesModern({ token, showOnlyKRs }) {
                 />
               </div>
 
+              {/* بخش انتساب */}
+              <div className="assignment-section">
+                <h4 className="assignment-title">
+                  <User className="w-4 h-4" />
+                  انتساب به <span className="required">*</span>
+                </h4>
+                
+                {formError && <div className="form-error">{formError}</div>}
+
+                <div className="form-group">
+                  <label>مسئول (کاربر)</label>
+                  <select
+                    value={formData.assignee_id}
+                    onChange={(e) => setFormData({ ...formData, assignee_id: e.target.value })}
+                  >
+                    <option value="">انتخاب کنید...</option>
+                    {orgUsers.map(user => (
+                      <option key={user.user_id} value={user.user_id}>
+                        {user.full_name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label>تیم</label>
+                  <select
+                    value={formData.team_id}
+                    onChange={(e) => setFormData({ ...formData, team_id: e.target.value })}
+                  >
+                    <option value="">انتخاب کنید...</option>
+                    {teams.map(team => (
+                      <option key={team.id} value={team.id}>
+                        {team.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <p className="assignment-hint">حداقل یکی از موارد بالا باید انتخاب شود</p>
+              </div>
+
               <div className="form-actions">
                 <button type="submit" className="btn-primary">ایجاد</button>
-                <button type="button" className="btn-secondary" onClick={() => setShowModal(false)}>
+                <button type="button" className="btn-secondary" onClick={() => { setShowModal(false); setFormError(''); }}>
                   انصراف
                 </button>
               </div>

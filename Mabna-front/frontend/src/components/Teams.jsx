@@ -265,7 +265,9 @@ function Teams({ token, user }) {
     <div className="teams-container">
       <div className="section-header">
         <h2>تیم‌ها</h2>
-        <button className="btn-add" onClick={openCreate}>+ تیم جدید</button>
+        {user && (user.role === 'admin' || user.role === 'leader') && (
+          <button className="btn-add" onClick={openCreate}>+ تیم جدید</button>
+        )}
       </div>
 
       {teams.length === 0 ? (

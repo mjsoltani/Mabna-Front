@@ -222,28 +222,12 @@ function ObjectivesModern({ token, showOnlyKRs }) {
 
   const fetchOrgUsers = async () => {
     try {
-      // فعلاً از admin dashboard استفاده می‌کنیم تا endpoint اختصاصی اضافه بشه
-      const response = await fetch(`${API_BASE_URL}/api/dashboard/admin`, {
+      const response = await fetch(`${API_BASE_URL}/api/users/list`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.ok) {
         const data = await response.json();
-        // استخراج کاربران یکتا از objectives
-        const usersMap = new Map();
-        data.objectives?.forEach(obj => {
-          if (obj.createdBy) {
-            usersMap.set(obj.createdBy.user_id, obj.createdBy);
-          }
-        });
-        // اضافه کردن کاربر فعلی
-        const currentUserRes = await fetch(`${API_BASE_URL}/api/profile`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (currentUserRes.ok) {
-          const currentUser = await currentUserRes.json();
-          usersMap.set(currentUser.user_id, { user_id: currentUser.user_id, full_name: currentUser.full_name });
-        }
-        setOrgUsers(Array.from(usersMap.values()));
+        setOrgUsers(data);
       }
     } catch (error) {
       console.error('Error fetching org users:', error);

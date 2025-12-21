@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Calendar, CalendarDays, CalendarRange, RefreshCw, MapPin, Flag, Clock, ClipboardList, FileText, Zap, Pencil, Pause, Play, Trash2, CheckCircle, Loader, Hourglass } from 'lucide-react';
 import API_BASE_URL from '../config';
 import CreateRecurringPattern from './CreateRecurringPattern';
 import EditRecurringPattern from './EditRecurringPattern';
@@ -100,10 +101,10 @@ function RecurringPatterns({ token }) {
 
   const getFrequencyIcon = (frequency) => {
     switch (frequency) {
-      case 'daily': return '📅';
-      case 'weekly': return '📆';
-      case 'monthly': return '🗓️';
-      default: return '🔄';
+      case 'daily': return <Calendar size={18} style={{ color: '#3b82f6' }} />;
+      case 'weekly': return <CalendarDays size={18} style={{ color: '#8b5cf6' }} />;
+      case 'monthly': return <CalendarRange size={18} style={{ color: '#10b981' }} />;
+      default: return <RefreshCw size={18} style={{ color: '#6366f1' }} />;
     }
   };
 
@@ -175,7 +176,7 @@ function RecurringPatterns({ token }) {
 
       {patterns.length === 0 ? (
         <div className="empty-state">
-          <div className="empty-icon">🔄</div>
+          <div className="empty-icon"><RefreshCw size={48} style={{ color: '#6366f1' }} /></div>
           <h3>هیچ الگوی تکراری وجود ندارد</h3>
           <p>برای ساخت وظایف خودکار، یک الگوی تکرار ایجاد کنید</p>
           <button className="btn-primary" onClick={() => setShowCreateModal(true)}>
@@ -202,18 +203,18 @@ function RecurringPatterns({ token }) {
 
               <div className="pattern-info">
                 <div className="info-item">
-                  <span className="label">🔄 تکرار:</span>
+                  <span className="label"><RefreshCw size={14} /> تکرار:</span>
                   <span className="value">{getFrequencyText(pattern)}</span>
                 </div>
                 <div className="info-item">
-                  <span className="label">📍 شروع:</span>
+                  <span className="label"><MapPin size={14} /> شروع:</span>
                   <span className="value">
                     {new Date(pattern.start_date).toLocaleDateString('fa-IR')}
                   </span>
                 </div>
                 {pattern.end_date && (
                   <div className="info-item">
-                    <span className="label">🏁 پایان:</span>
+                    <span className="label"><Flag size={14} /> پایان:</span>
                     <span className="value">
                       {new Date(pattern.end_date).toLocaleDateString('fa-IR')}
                     </span>
@@ -221,7 +222,7 @@ function RecurringPatterns({ token }) {
                 )}
                 {pattern.last_generated && (
                   <div className="info-item">
-                    <span className="label">⏱️ آخرین ساخت:</span>
+                    <span className="label"><Clock size={14} /> آخرین ساخت:</span>
                     <span className="value">
                       {new Date(pattern.last_generated).toLocaleDateString('fa-IR')}
                     </span>
@@ -231,10 +232,10 @@ function RecurringPatterns({ token }) {
 
               {pattern.subtask_templates.length > 0 && (
                 <div className="subtasks-preview">
-                  <strong>📋 Subtasks پیش‌فرض:</strong>
+                  <strong style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><ClipboardList size={14} /> Subtasks پیش‌فرض:</strong>
                   <ul>
                     {pattern.subtask_templates.map(st => (
-                      <li key={st.id}>✓ {st.title}</li>
+                      <li key={st.id}><CheckCircle size={12} style={{ color: '#10b981' }} /> {st.title}</li>
                     ))}
                   </ul>
                 </div>
@@ -242,12 +243,12 @@ function RecurringPatterns({ token }) {
 
               {pattern.recent_tasks.length > 0 && (
                 <div className="recent-tasks">
-                  <strong>📝 آخرین tasks:</strong>
+                  <strong style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><FileText size={14} /> آخرین tasks:</strong>
                   <ul>
                     {pattern.recent_tasks.slice(0, 3).map(task => (
                       <li key={task.id}>
                         <span className={`task-status ${task.status}`}>
-                          {task.status === 'done' ? '✅' : task.status === 'in_progress' ? '🔄' : '⏳'}
+                          {task.status === 'done' ? <CheckCircle size={14} style={{ color: '#10b981' }} /> : task.status === 'in_progress' ? <Loader size={14} style={{ color: '#3b82f6' }} /> : <Hourglass size={14} style={{ color: '#f59e0b' }} />}
                         </span>
                         {new Date(task.created_at).toLocaleDateString('fa-IR')}
                       </li>
@@ -262,7 +263,7 @@ function RecurringPatterns({ token }) {
                   onClick={() => generateTask(pattern.id)}
                   title="ساخت دستی task"
                 >
-                  ⚡ ساخت Task
+                  <Zap size={14} /> ساخت Task
                 </button>
                 <button 
                   className="btn-action btn-edit" 
@@ -272,21 +273,21 @@ function RecurringPatterns({ token }) {
                   }}
                   title="ویرایش"
                 >
-                  ✏️
+                  <Pencil size={14} /> ویرایش
                 </button>
                 <button 
                   className="btn-action btn-toggle" 
                   onClick={() => toggleActive(pattern.id, pattern.is_active)}
                   title={pattern.is_active ? 'غیرفعال کردن' : 'فعال کردن'}
                 >
-                  {pattern.is_active ? '⏸️' : '▶️'}
+                  {pattern.is_active ? <><Pause size={14} /> توقف</> : <><Play size={14} /> فعال</>}
                 </button>
                 <button 
                   className="btn-action btn-delete" 
                   onClick={() => setDeleteConfirm(pattern.id)}
                   title="حذف"
                 >
-                  🗑️
+                  <Trash2 size={14} /> حذف
                 </button>
               </div>
             </div>

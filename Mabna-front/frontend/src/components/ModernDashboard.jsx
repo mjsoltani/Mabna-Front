@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { TrendingUp, Target, CheckCircle, Clock, Users, Activity } from 'lucide-react';
+import { TrendingUp, Target, CheckCircle, Clock, Users, Activity, ClipboardList, AlertCircle, Circle, User, FileText } from 'lucide-react';
 import API_BASE_URL from '../config';
 import { toJalali } from '../utils/dateUtils';
 import './ModernDashboard.css';
@@ -250,8 +250,9 @@ function ModernDashboard({ token, onObjectiveClick, onTaskClick }) {
         {/* وظایف اخیر */}
         {dashboard?.recent_tasks && dashboard.recent_tasks.length > 0 && (
           <div className="recent-tasks-modern" style={{ marginBottom: '32px' }}>
-            <h4 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '16px', color: '#1e293b' }}>
-              📋 وظایف اخیر
+            <h4 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '16px', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <ClipboardList size={18} style={{ color: '#6366f1' }} />
+              وظایف اخیر
             </h4>
             <div style={{ display: 'grid', gap: '12px' }}>
               {dashboard.recent_tasks.slice(0, 5).map(task => (
@@ -277,8 +278,14 @@ function ModernDashboard({ token, onObjectiveClick, onTaskClick }) {
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-                    <span style={{ fontSize: '20px' }}>
-                      {task.priority === 'high' ? '🔴' : task.priority === 'medium' ? '🟡' : '🟢'}
+                    <span style={{ display: 'flex', alignItems: 'center' }}>
+                      {task.priority === 'high' ? (
+                        <AlertCircle size={20} style={{ color: '#ef4444' }} />
+                      ) : task.priority === 'medium' ? (
+                        <Circle size={20} style={{ color: '#f59e0b', fill: '#f59e0b' }} />
+                      ) : (
+                        <Circle size={20} style={{ color: '#10b981', fill: '#10b981' }} />
+                      )}
                     </span>
                     <strong style={{ flex: 1, fontSize: '14px' }}>{task.title}</strong>
                     <span className={`status-badge ${task.status === 'done' ? 'success' : task.status === 'in_progress' ? 'warning' : 'neutral'}`} style={{
@@ -290,11 +297,24 @@ function ModernDashboard({ token, onObjectiveClick, onTaskClick }) {
                       {task.status === 'done' ? 'تکمیل' : task.status === 'in_progress' ? 'در حال انجام' : 'در انتظار'}
                     </span>
                   </div>
-                  <div style={{ display: 'flex', gap: '12px', fontSize: '12px', color: '#94a3b8', flexWrap: 'wrap' }}>
-                    {task.assignee && <span>👤 {task.assignee.full_name}</span>}
-                    {task.deadline && <span>⏰ {new Date(task.deadline).toLocaleDateString('fa-IR')}</span>}
+                  <div style={{ display: 'flex', gap: '12px', fontSize: '12px', color: '#94a3b8', flexWrap: 'wrap', alignItems: 'center' }}>
+                    {task.assignee && (
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <User size={14} />
+                        {task.assignee.full_name}
+                      </span>
+                    )}
+                    {task.deadline && (
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <Clock size={14} />
+                        {new Date(task.deadline).toLocaleDateString('fa-IR')}
+                      </span>
+                    )}
                     {task.subtasks && task.subtasks.total > 0 && (
-                      <span>📝 {task.subtasks.completed}/{task.subtasks.total}</span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <FileText size={14} />
+                        {task.subtasks.completed}/{task.subtasks.total}
+                      </span>
                     )}
                     {task.is_creator && <span style={{ color: '#6366f1' }}>سازنده</span>}
                     {task.is_assignee && <span style={{ color: '#10b981' }}>مسئول</span>}

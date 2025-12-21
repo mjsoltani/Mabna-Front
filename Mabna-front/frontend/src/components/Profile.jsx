@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Crown, User, Calendar, Pencil, Lock, BarChart3, FileText, Building2, Users, ClipboardList, Hourglass, RefreshCw, CheckCircle, AlertTriangle, AlertCircle, MessageSquare, Bell, Clock, Circle } from 'lucide-react';
 import API_BASE_URL from '../config';
 import './Profile.css';
 
@@ -161,19 +162,19 @@ function Profile({ token, user, onTaskClick, onObjectiveClick }) {
           <p className="email">{profile.user.email}</p>
           <div className="badges">
             <span className={`role-badge ${profile.user.role}`}>
-              {profile.user.role === 'admin' ? '👑 مدیر' : '👤 کاربر'}
+              {profile.user.role === 'admin' ? <><Crown size={14} /> مدیر</> : <><User size={14} /> کاربر</>}
             </span>
             <span className="date-badge">
-              📅 عضو از {new Date(profile.user.created_at).toLocaleDateString('fa-IR')}
+              <Calendar size={14} /> عضو از {new Date(profile.user.created_at).toLocaleDateString('fa-IR')}
             </span>
           </div>
         </div>
         <div className="header-actions">
           <button className="btn-edit" onClick={() => setEditMode(true)}>
-            ✏️ ویرایش پروفایل
+            <Pencil size={14} /> ویرایش پروفایل
           </button>
           <button className="btn-password" onClick={() => setChangePasswordMode(true)}>
-            🔒 تغییر رمز عبور
+            <Lock size={14} /> تغییر رمز عبور
           </button>
         </div>
       </div>
@@ -222,7 +223,7 @@ function Profile({ token, user, onTaskClick, onObjectiveClick }) {
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <h3>تغییر رمز عبور</h3>
             {passwordError && <div className="error-message">{passwordError}</div>}
-            {passwordSuccess && <div className="success-message">✅ رمز عبور با موفقیت تغییر کرد</div>}
+            {passwordSuccess && <div className="success-message"><CheckCircle size={14} /> رمز عبور با موفقیت تغییر کرد</div>}
             <form onSubmit={handlePasswordSubmit}>
               <div className="form-group">
                 <label>رمز عبور فعلی</label>
@@ -271,13 +272,13 @@ function Profile({ token, user, onTaskClick, onObjectiveClick }) {
           className={activeTab === 'overview' ? 'tab active' : 'tab'}
           onClick={() => setActiveTab('overview')}
         >
-          📊 نمای کلی
+          <BarChart3 size={16} /> نمای کلی
         </button>
         <button 
           className={activeTab === 'activity' ? 'tab active' : 'tab'}
           onClick={() => setActiveTab('activity')}
         >
-          📝 فعالیت‌ها
+          <FileText size={16} /> فعالیت‌ها
         </button>
       </div>
 
@@ -285,7 +286,7 @@ function Profile({ token, user, onTaskClick, onObjectiveClick }) {
         {activeTab === 'overview' && (
           <>
             <div className="info-section">
-              <h2>🏢 اطلاعات سازمان</h2>
+              <h2><Building2 size={18} /> اطلاعات سازمان</h2>
               <div className="info-card">
                 <div className="info-item">
                   <span className="label">نام سازمان:</span>
@@ -296,7 +297,7 @@ function Profile({ token, user, onTaskClick, onObjectiveClick }) {
 
             {profile.teams.length > 0 && (
               <div className="teams-section">
-                <h2>👥 تیم‌ها</h2>
+                <h2><Users size={18} /> تیم‌ها</h2>
                 <div className="teams-grid">
                   {profile.teams.map(team => (
                     <div key={team.id} className="team-card">
@@ -315,45 +316,45 @@ function Profile({ token, user, onTaskClick, onObjectiveClick }) {
             )}
 
             <div className="stats-section">
-              <h2>📈 آمار فعالیت</h2>
+              <h2><BarChart3 size={18} /> آمار فعالیت</h2>
               <div className="stats-grid">
                 <div className="stat-card">
-                  <div className="stat-icon">📋</div>
+                  <div className="stat-icon"><ClipboardList size={24} style={{ color: '#6366f1' }} /></div>
                   <div className="stat-value">{profile.stats.tasks.total}</div>
                   <div className="stat-label">کل وظایف</div>
                 </div>
                 <div className="stat-card todo">
-                  <div className="stat-icon">⏳</div>
+                  <div className="stat-icon"><Hourglass size={24} style={{ color: '#f59e0b' }} /></div>
                   <div className="stat-value">{profile.stats.tasks.todo}</div>
                   <div className="stat-label">در انتظار</div>
                 </div>
                 <div className="stat-card progress">
-                  <div className="stat-icon">🔄</div>
+                  <div className="stat-icon"><RefreshCw size={24} style={{ color: '#3b82f6' }} /></div>
                   <div className="stat-value">{profile.stats.tasks.in_progress}</div>
                   <div className="stat-label">در حال انجام</div>
                 </div>
                 <div className="stat-card done">
-                  <div className="stat-icon">✅</div>
+                  <div className="stat-icon"><CheckCircle size={24} style={{ color: '#10b981' }} /></div>
                   <div className="stat-value">{profile.stats.tasks.done}</div>
                   <div className="stat-label">تکمیل شده</div>
                 </div>
                 <div className="stat-card warning">
-                  <div className="stat-icon">⚠️</div>
+                  <div className="stat-icon"><AlertTriangle size={24} style={{ color: '#f59e0b' }} /></div>
                   <div className="stat-value">{profile.stats.tasks.upcoming}</div>
                   <div className="stat-label">نزدیک به موعد</div>
                 </div>
                 <div className="stat-card danger">
-                  <div className="stat-icon">🔴</div>
+                  <div className="stat-icon"><AlertCircle size={24} style={{ color: '#ef4444' }} /></div>
                   <div className="stat-value">{profile.stats.tasks.overdue}</div>
                   <div className="stat-label">گذشته از موعد</div>
                 </div>
                 <div className="stat-card">
-                  <div className="stat-icon">💬</div>
+                  <div className="stat-icon"><MessageSquare size={24} style={{ color: '#8b5cf6' }} /></div>
                   <div className="stat-value">{profile.stats.comments}</div>
                   <div className="stat-label">نظرات</div>
                 </div>
                 <div className="stat-card">
-                  <div className="stat-icon">🔔</div>
+                  <div className="stat-icon"><Bell size={24} style={{ color: '#ec4899' }} /></div>
                   <div className="stat-value">{profile.stats.unread_notifications}</div>
                   <div className="stat-label">اعلان‌های جدید</div>
                 </div>
@@ -365,7 +366,7 @@ function Profile({ token, user, onTaskClick, onObjectiveClick }) {
         {activeTab === 'activity' && activity && (
           <div className="activity-container">
             <div className="activity-section">
-              <h2>📋 آخرین وظایف</h2>
+              <h2><ClipboardList size={18} /> آخرین وظایف</h2>
               {activity.recent_tasks.length === 0 ? (
                 <p className="empty-state">وظیفه‌ای وجود ندارد</p>
               ) : (
@@ -378,7 +379,7 @@ function Profile({ token, user, onTaskClick, onObjectiveClick }) {
                       style={{ cursor: 'pointer' }}
                     >
                       <div className="activity-icon">
-                        {task.priority === 'high' ? '🔴' : task.priority === 'medium' ? '🟡' : '🟢'}
+                        {task.priority === 'high' ? <AlertCircle size={20} style={{ color: '#ef4444' }} /> : task.priority === 'medium' ? <Circle size={20} style={{ color: '#f59e0b', fill: '#f59e0b' }} /> : <Circle size={20} style={{ color: '#10b981', fill: '#10b981' }} />}
                       </div>
                       <div className="activity-content">
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
@@ -386,24 +387,24 @@ function Profile({ token, user, onTaskClick, onObjectiveClick }) {
                           <span className={`status-badge ${task.status}`}>
                             {task.status === 'done' ? 'انجام شده' : task.status === 'in_progress' ? 'در حال انجام' : 'در انتظار'}
                           </span>
-                          {task.is_creator && <span style={{ fontSize: '12px', color: '#6366f1' }}>👤 سازنده</span>}
-                          {task.is_assignee && <span style={{ fontSize: '12px', color: '#10b981' }}>✅ مسئول</span>}
+                          {task.is_creator && <span style={{ fontSize: '12px', color: '#6366f1', display: 'flex', alignItems: 'center', gap: '2px' }}><User size={12} /> سازنده</span>}
+                          {task.is_assignee && <span style={{ fontSize: '12px', color: '#10b981', display: 'flex', alignItems: 'center', gap: '2px' }}><CheckCircle size={12} /> مسئول</span>}
                         </div>
                         {task.description && (
                           <p style={{ fontSize: '13px', color: '#6b7280', margin: '4px 0' }}>
                             {task.description.length > 60 ? task.description.substring(0, 60) + '...' : task.description}
                           </p>
                         )}
-                        <div style={{ display: 'flex', gap: '12px', fontSize: '12px', color: '#9ca3af' }}>
-                          <small>📅 {new Date(task.created_at).toLocaleDateString('fa-IR')}</small>
+                        <div style={{ display: 'flex', gap: '12px', fontSize: '12px', color: '#9ca3af', alignItems: 'center' }}>
+                          <small style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Calendar size={12} /> {new Date(task.created_at).toLocaleDateString('fa-IR')}</small>
                           {task.deadline && (
-                            <small>⏰ {new Date(task.deadline).toLocaleDateString('fa-IR')}</small>
+                            <small style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Clock size={12} /> {new Date(task.deadline).toLocaleDateString('fa-IR')}</small>
                           )}
                           {task.subtasks && task.subtasks.total > 0 && (
-                            <small>📝 {task.subtasks.completed}/{task.subtasks.total}</small>
+                            <small style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><FileText size={12} /> {task.subtasks.completed}/{task.subtasks.total}</small>
                           )}
                           {task.assignee && (
-                            <small>👤 {task.assignee.full_name}</small>
+                            <small style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><User size={12} /> {task.assignee.full_name}</small>
                           )}
                         </div>
                       </div>
@@ -414,7 +415,7 @@ function Profile({ token, user, onTaskClick, onObjectiveClick }) {
             </div>
 
             <div className="activity-section">
-              <h2>💬 آخرین نظرات</h2>
+              <h2><MessageSquare size={18} /> آخرین نظرات</h2>
               {activity.recent_comments.length === 0 ? (
                 <p className="empty-state">نظری وجود ندارد</p>
               ) : (
@@ -426,7 +427,7 @@ function Profile({ token, user, onTaskClick, onObjectiveClick }) {
                       onClick={() => onTaskClick && comment.task && onTaskClick(comment.task.id)}
                       style={{ cursor: 'pointer' }}
                     >
-                      <div className="activity-icon">💬</div>
+                      <div className="activity-icon"><MessageSquare size={20} style={{ color: '#8b5cf6' }} /></div>
                       <div className="activity-content">
                         <p>{comment.content}</p>
                         <small>در وظیفه: {comment.task.title}</small>
@@ -439,14 +440,14 @@ function Profile({ token, user, onTaskClick, onObjectiveClick }) {
             </div>
 
             <div className="activity-section">
-              <h2>🔔 آخرین اعلان‌ها</h2>
+              <h2><Bell size={18} /> آخرین اعلان‌ها</h2>
               {activity.recent_notifications.length === 0 ? (
                 <p className="empty-state">اعلانی وجود ندارد</p>
               ) : (
                 <div className="activity-list">
                   {activity.recent_notifications.map(notif => (
                     <div key={notif.id} className={`activity-item ${!notif.isRead ? 'unread' : ''}`}>
-                      <div className="activity-icon">🔔</div>
+                      <div className="activity-icon"><Bell size={20} style={{ color: '#ec4899' }} /></div>
                       <div className="activity-content">
                         <strong>{notif.title}</strong>
                         <p>{notif.message}</p>

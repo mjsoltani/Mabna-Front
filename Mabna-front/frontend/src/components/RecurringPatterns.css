@@ -47,8 +47,10 @@
 }
 
 .empty-icon {
-  font-size: 64px;
-  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
   opacity: 0.5;
 }
 
@@ -104,7 +106,9 @@
 }
 
 .frequency-icon {
-  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .pattern-header h3 {
@@ -149,6 +153,7 @@
 .info-item {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   padding: 8px 0;
   border-bottom: 1px solid #f3f4f6;
 }
@@ -158,8 +163,15 @@
 }
 
 .info-item .label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   color: #6b7280;
   font-size: 13px;
+}
+
+.info-item .label svg {
+  flex-shrink: 0;
 }
 
 .info-item .value {
@@ -179,7 +191,6 @@
 
 .subtasks-preview strong,
 .recent-tasks strong {
-  display: block;
   margin-bottom: 8px;
   color: #1e40af;
   font-size: 13px;
@@ -194,24 +205,28 @@
 
 .subtasks-preview li,
 .recent-tasks li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 13px;
   color: #374151;
   margin-bottom: 6px;
   padding: 6px 0;
 }
 
-.recent-tasks li {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.subtasks-preview li svg,
+.recent-tasks li svg {
+  flex-shrink: 0;
 }
 
 .task-status {
-  font-size: 16px;
+  display: flex;
+  align-items: center;
 }
 
 .pattern-actions {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 8px;
   margin-top: 20px;
   padding-top: 20px;
@@ -219,51 +234,51 @@
 }
 
 .btn-action {
-  flex: 1;
-  padding: 10px 16px;
-  border: 2px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 2px solid;
   border-radius: 8px;
-  background: white;
   cursor: pointer;
   font-size: 13px;
   font-weight: 600;
   transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btn-action svg {
+  flex-shrink: 0;
 }
 
 .btn-action:hover {
   transform: translateY(-1px);
+  filter: brightness(0.95);
 }
 
-.btn-generate {
-  color: #2563eb;
-  border-color: #2563eb;
+.pattern-actions .btn-generate {
+  color: #1d4ed8;
+  border-color: #3b82f6;
+  background: #dbeafe;
 }
 
-.btn-generate:hover {
-  background: #eff6ff;
-}
-
-.btn-toggle {
-  color: #059669;
-  border-color: #059669;
-}
-
-.btn-toggle:hover {
-  background: #d1fae5;
-}
-
-.btn-edit {
-  color: #f59e0b;
-  border-color: #f59e0b;
-}
-
-.btn-edit:hover {
+.pattern-actions .btn-edit {
+  color: #78350f;
+  border-color: #d97706;
   background: #fef3c7;
 }
 
-.btn-delete {
-  color: #dc2626;
-  border-color: #dc2626;
+.pattern-actions .btn-toggle {
+  color: #065f46;
+  border-color: #10b981;
+  background: #d1fae5;
+}
+
+.pattern-actions .btn-delete {
+  color: #991b1b;
+  border-color: #ef4444;
+  background: #fee2e2;
 }
 
 .btn-delete:hover {

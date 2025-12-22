@@ -519,59 +519,6 @@
   transition: width 0.3s ease;
 }
 
-/* حالت تاریک - فقط برای المان‌های غیر مودال */
-@media (prefers-color-scheme: dark) {
-  .report-header {
-    background: #27272a;
-  }
-
-  .report-header p {
-    color: #a1a1aa;
-  }
-
-  .report-header strong {
-    color: white;
-  }
-
-  .report-kr-card {
-    background: #27272a;
-    border-color: #3f3f46;
-  }
-
-  .report-kr-card h4 {
-    color: white;
-  }
-
-  .kr-tasks h5 {
-    color: #d4d4d8;
-  }
-
-  .task-item {
-    background: #18181b;
-  }
-
-  .kr-task-card {
-    background: #27272a;
-    border-color: #3f3f46;
-  }
-
-  .task-header h5 {
-    color: white;
-  }
-
-  .stat-box {
-    background: #27272a;
-  }
-
-  .stat-value {
-    color: white;
-  }
-
-  .progress-bar-large {
-    background: #27272a;
-  }
-}
-
 /* اسکرول‌بار سفارشی */
 .modal-content::-webkit-scrollbar {
   width: 8px;
@@ -725,35 +672,6 @@
 .attachment-delete:hover {
   background: #fee2e2;
   color: #ef4444;
-}
-
-/* حالت تاریک برای پیوست‌ها */
-@media (prefers-color-scheme: dark) {
-  .upload-section {
-    background: #27272a;
-  }
-
-  .attachment-item {
-    background: #27272a;
-    border-color: #3f3f46;
-  }
-
-  .attachment-icon {
-    background: #18181b;
-    border-color: #3f3f46;
-  }
-
-  .attachment-name {
-    color: white;
-  }
-
-  .attachment-meta {
-    color: #a1a1aa;
-  }
-
-  .empty-attachments {
-    color: #71717a;
-  }
 }
 
 

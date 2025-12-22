@@ -78,13 +78,13 @@ function KeyResultCard({ keyResult, token, onViewDetails, onCreateTask }) {
 
   if (loading) {
     return (
-      <div className="h-full rounded-3xl p-6 bg-white dark:bg-black/5 border border-zinc-200 dark:border-zinc-800 animate-pulse">
-        <div className="h-6 bg-zinc-200 dark:bg-zinc-800 rounded mb-4"></div>
-        <div className="h-4 bg-zinc-200 dark:bg-zinc-800 rounded mb-6"></div>
+      <div className="h-full rounded-3xl p-6 bg-white border border-zinc-200 animate-pulse">
+        <div className="h-6 bg-zinc-200 rounded mb-4"></div>
+        <div className="h-4 bg-zinc-200 rounded mb-6"></div>
         <div className="grid grid-cols-3 gap-4">
-          <div className="h-24 bg-zinc-200 dark:bg-zinc-800 rounded-full"></div>
-          <div className="h-24 bg-zinc-200 dark:bg-zinc-800 rounded-full"></div>
-          <div className="h-24 bg-zinc-200 dark:bg-zinc-800 rounded-full"></div>
+          <div className="h-24 bg-zinc-200 rounded-full"></div>
+          <div className="h-24 bg-zinc-200 rounded-full"></div>
+          <div className="h-24 bg-zinc-200 rounded-full"></div>
         </div>
       </div>
     );
@@ -696,22 +696,22 @@ function ObjectivesModern({ token, showOnlyKRs }) {
   if (loading) return <div className="loading">در حال بارگذاری...</div>;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-zinc-900 dark:to-zinc-950 p-8">
+    <div className="min-h-screen bg-gradient-to-br from-zinc-50 to-zinc-100 p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-4xl font-bold text-zinc-900 dark:text-white mb-2">
+            <h1 className="text-4xl font-bold text-zinc-900 mb-2">
               {showOnlyKRs ? 'نتایج کلیدی' : 'اهداف'}
             </h1>
-            <p className="text-zinc-600 dark:text-zinc-400">
+            <p className="text-zinc-600">
               مدیریت و پیگیری اهداف و نتایج کلیدی
             </p>
           </div>
           {!showOnlyKRs && (
             <button
               onClick={() => setShowModal(true)}
-              className="px-6 py-3 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 
+              className="px-6 py-3 bg-zinc-900 text-white 
                 rounded-2xl font-medium hover:scale-105 transition-transform duration-200
                 flex items-center gap-2"
             >
@@ -793,16 +793,16 @@ function ObjectivesModern({ token, showOnlyKRs }) {
         {/* Empty State */}
         {!showOnlyKRs && objectives.length === 0 && (
           <div className="text-center py-20">
-            <Target className="w-20 h-20 mx-auto text-zinc-300 dark:text-zinc-700 mb-4" />
-            <h3 className="text-2xl font-semibold text-zinc-700 dark:text-zinc-300 mb-2">
+            <Target className="w-20 h-20 mx-auto text-zinc-300 mb-4" />
+            <h3 className="text-2xl font-semibold text-zinc-700 mb-2">
               هنوز هدفی ایجاد نشده
             </h3>
-            <p className="text-zinc-500 dark:text-zinc-400 mb-6">
+            <p className="text-zinc-500 mb-6">
               برای شروع، اولین هدف خود را ایجاد کنید
             </p>
             <button
               onClick={() => setShowModal(true)}
-              className="px-6 py-3 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 
+              className="px-6 py-3 bg-zinc-900 text-white 
                 rounded-2xl font-medium hover:scale-105 transition-transform duration-200
                 inline-flex items-center gap-2"
             >
@@ -815,11 +815,11 @@ function ObjectivesModern({ token, showOnlyKRs }) {
         {/* Empty State for Key Results */}
         {showOnlyKRs && keyResults.length === 0 && (
           <div className="text-center py-20">
-            <Target className="w-20 h-20 mx-auto text-zinc-300 dark:text-zinc-700 mb-4" />
-            <h3 className="text-2xl font-semibold text-zinc-700 dark:text-zinc-300 mb-2">
+            <Target className="w-20 h-20 mx-auto text-zinc-300 mb-4" />
+            <h3 className="text-2xl font-semibold text-zinc-700 mb-2">
               هنوز نتیجه کلیدی وجود ندارد
             </h3>
-            <p className="text-zinc-500 dark:text-zinc-400 mb-6">
+            <p className="text-zinc-500 mb-6">
               ابتدا یک هدف ایجاد کنید و سپس نتایج کلیدی را اضافه کنید
             </p>
           </div>

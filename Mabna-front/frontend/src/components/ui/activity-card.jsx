@@ -1,7 +1,7 @@
 // components/ui/activity-card.jsx
 "use client";
 
-import { Activity, ArrowUpRight, Plus, Target, CheckCircle2, Paperclip, User, Users } from "lucide-react";
+import { Activity, ArrowUpRight, Plus, Target, CheckCircle2, Paperclip, User, Users, Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -21,6 +21,8 @@ export function ActivityCard({
   onToggleGoal,
   onViewDetails,
   onViewAttachments,
+  onEdit,
+  onDelete,
   className
 }) {
   const [isHovering, setIsHovering] = useState(null);
@@ -182,31 +184,57 @@ export function ActivityCard({
 
         <div className="pt-4 border-t border-zinc-200 dark:border-zinc-800">
           <div className="flex items-center justify-between">
-            <button
-              onClick={onViewDetails}
-              className="inline-flex items-center gap-2 text-sm font-medium
-                text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white
-                transition-colors duration-200"
-            >
-              مشاهده جزئیات
-              <ArrowUpRight className="w-4 h-4" />
-            </button>
-            
-            {onViewAttachments && (
+            <div className="flex items-center gap-2">
               <button
-                onClick={onViewAttachments}
-                className="inline-flex items-center gap-1.5 text-sm font-medium
-                  text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200
+                onClick={onViewDetails}
+                className="inline-flex items-center gap-2 text-sm font-medium
+                  text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white
                   transition-colors duration-200"
               >
-                <Paperclip className="w-4 h-4" />
-                {attachmentsCount > 0 && (
-                  <span className="bg-zinc-200 dark:bg-zinc-700 px-1.5 py-0.5 rounded-full text-xs">
-                    {attachmentsCount}
-                  </span>
-                )}
+                مشاهده جزئیات
+                <ArrowUpRight className="w-4 h-4" />
               </button>
-            )}
+            </div>
+            
+            <div className="flex items-center gap-2">
+              {onEdit && (
+                <button
+                  onClick={onEdit}
+                  className="p-2 rounded-lg text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20
+                    transition-colors duration-200"
+                  title="ویرایش"
+                >
+                  <Pencil className="w-4 h-4" />
+                </button>
+              )}
+              
+              {onDelete && (
+                <button
+                  onClick={onDelete}
+                  className="p-2 rounded-lg text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20
+                    transition-colors duration-200"
+                  title="حذف"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              )}
+              
+              {onViewAttachments && (
+                <button
+                  onClick={onViewAttachments}
+                  className="inline-flex items-center gap-1.5 text-sm font-medium
+                    text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200
+                    transition-colors duration-200"
+                >
+                  <Paperclip className="w-4 h-4" />
+                  {attachmentsCount > 0 && (
+                    <span className="bg-zinc-200 dark:bg-zinc-700 px-1.5 py-0.5 rounded-full text-xs">
+                      {attachmentsCount}
+                    </span>
+                  )}
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>

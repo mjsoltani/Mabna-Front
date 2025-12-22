@@ -744,11 +744,25 @@ function ObjectivesModern({ token, showOnlyKRs }) {
                     setShowKRModal(true);
                   }}
                   onToggleGoal={(goalId) => {
-                    // می‌توانید اینجا عملیات toggle را پیاده کنید
                     console.log('Toggle KR:', goalId);
                   }}
                   onViewDetails={() => fetchReport(obj.id)}
                   onViewAttachments={() => openAttachmentsModal(obj)}
+                  onEdit={() => {
+                    setSelectedObjective(obj);
+                    setFormData({
+                      title: obj.title,
+                      description: obj.description || '',
+                      start_date: obj.start_date,
+                      end_date: obj.end_date,
+                      assignee_ids: obj.assignees?.map(a => a.user_id) || [],
+                      team_ids: obj.teams?.map(t => t.id) || []
+                    });
+                    setEditStartValue(obj.start_date ? new Date(obj.start_date) : null);
+                    setEditEndValue(obj.end_date ? new Date(obj.end_date) : null);
+                    setShowEditModal(true);
+                  }}
+                  onDelete={() => setDeleteConfirm(obj.id)}
                   className="h-full"
                 />
               );
@@ -1126,6 +1140,136 @@ function ObjectivesModern({ token, showOnlyKRs }) {
             <button className="btn-secondary" onClick={() => setShowAttachmentsModal(false)}>
               بستن
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Modal ویرایش هدف */}
+      {showEditModal && selectedObjective && (
+        <div className="modal-overlay" onClick={() => { setShowEditModal(false); setFormError(''); }}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h3>ویرایش هدف</h3>
+            <form onSubmit={handleEditSubmit}>
+              <div className="form-group">
+                <label>عنوان هدف</label>
+                <input
+                  type="text"
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  required
+                  placeholder="عنوان هدف را وارد کنید"
+                />
+              </div>
+
+              <div className="form-group">
+                <label>توضیحات</label>
+                <textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="توضیحات هدف (اختیاری)"
+                  rows="3"
+                />
+              </div>
+
+              <div className="form-group">
+                <label>تاریخ شروع</label>
+                <DatePicker
+                  value={editStartValue}
+                  onChange={setEditStartValue}
+                  calendar={persian}
+                  locale={persian_fa}
+                  placeholder="تاریخ شروع"
+                />
+              </div>
+
+              <div className="form-group">
+                <label>تاریخ پایان</label>
+                <DatePicker
+                  value={editEndValue}
+                  onChange={setEditEndValue}
+                  calendar={persian}
+                  locale={persian_fa}
+                  placeholder="تاریخ پایان"
+                />
+              </div>
+
+              {/* بخش انتساب */}
+              <div className="assignment-section">
+                <h4 className="assignment-title">
+                  <User className="w-4 h-4" />
+                  انتساب به <span className="required">*</span>
+                </h4>
+                
+                {formError && <div className="form-error">{formError}</div>}
+
+                <div className="form-group">
+                  <label>مسئولین (کاربران)</label>
+                  <select
+                    multiple
+                    value={formData.assignee_ids}
+                    onChange={(e) => setFormData({ 
+                      ...formData, 
+                      assignee_ids: Array.from(e.target.selectedOptions, option => option.value) 
+                    })}
+                    className="multi-select"
+                  >
+                    {orgUsers.map(user => (
+                      <option key={user.user_id} value={user.user_id}>
+                        {user.full_name}
+                      </option>
+                    ))}
+                  </select>
+                  <small className="form-hint">برای انتخاب چند کاربر، Ctrl را نگه دارید</small>
+                </div>
+
+                <div className="form-group">
+                  <label>تیم‌ها</label>
+                  <select
+                    multiple
+                    value={formData.team_ids}
+                    onChange={(e) => setFormData({ 
+                      ...formData, 
+                      team_ids: Array.from(e.target.selectedOptions, option => option.value) 
+                    })}
+                    className="multi-select"
+                  >
+                    {teams.map(team => (
+                      <option key={team.id} value={team.id}>
+                        {team.name}
+                      </option>
+                    ))}
+                  </select>
+                  <small className="form-hint">برای انتخاب چند تیم، Ctrl را نگه دارید</small>
+                </div>
+
+                <p className="assignment-hint">حداقل یکی از موارد بالا باید انتخاب شود</p>
+              </div>
+
+              <div className="form-actions">
+                <button type="submit" className="btn-primary">ذخیره تغییرات</button>
+                <button type="button" className="btn-secondary" onClick={() => { setShowEditModal(false); setFormError(''); }}>
+                  انصراف
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal تأیید حذف هدف */}
+      {deleteConfirm && (
+        <div className="modal-overlay" onClick={() => setDeleteConfirm(null)}>
+          <div className="modal-content small" onClick={(e) => e.stopPropagation()}>
+            <h3>حذف هدف</h3>
+            <p>آیا از حذف این هدف مطمئن هستید؟ این عمل قابل بازگشت نیست و تمام نتایج کلیدی مرتبط نیز حذف خواهند شد.</p>
+            <div className="form-actions">
+              <button className="btn-danger" onClick={() => handleDeleteObjective(deleteConfirm)}>
+                حذف
+              </button>
+              <button className="btn-secondary" onClick={() => setDeleteConfirm(null)}>
+                انصراف
+              </button>
+            </div>
           </div>
         </div>
       )}

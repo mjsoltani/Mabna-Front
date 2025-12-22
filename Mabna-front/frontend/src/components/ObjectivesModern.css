@@ -152,6 +152,23 @@
   background: #e4e4e7;
 }
 
+.btn-danger {
+  flex: 1;
+  padding: 12px 24px;
+  background: #dc2626;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-danger:hover {
+  background: #b91c1c;
+}
+
 .btn-delete {
   flex: 1;
   padding: 12px 24px;

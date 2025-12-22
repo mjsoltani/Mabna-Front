@@ -130,8 +130,8 @@ function ObjectivesModern({ token, showOnlyKRs }) {
     description: '',
     start_date: '',
     end_date: '',
-    assignee_id: '',
-    team_id: ''
+    assignee_ids: [],
+    team_ids: []
   });
   const [startValue, setStartValue] = useState(null);
   const [endValue, setEndValue] = useState(null);
@@ -351,8 +351,8 @@ function ObjectivesModern({ token, showOnlyKRs }) {
     e.preventDefault();
     setFormError('');
 
-    // Validation: حداقل یکی از assignee_id یا team_id باید انتخاب بشه
-    if (!formData.assignee_id && !formData.team_id) {
+    // Validation: حداقل یکی از assignee_ids یا team_ids باید انتخاب بشه
+    if (formData.assignee_ids.length === 0 && formData.team_ids.length === 0) {
       setFormError('لطفاً حداقل یک مسئول یا تیم انتخاب کنید');
       return;
     }
@@ -363,8 +363,8 @@ function ObjectivesModern({ token, showOnlyKRs }) {
         description: formData.description || null,
         start_date: toYMD(startValue),
         end_date: toYMD(endValue),
-        assignee_id: formData.assignee_id || null,
-        team_id: formData.team_id || null
+        assignee_ids: formData.assignee_ids.length > 0 ? formData.assignee_ids : null,
+        team_ids: formData.team_ids.length > 0 ? formData.team_ids : null
       };
       const response = await fetch(`${API_BASE_URL}/api/objectives`, {
         method: 'POST',
@@ -377,7 +377,7 @@ function ObjectivesModern({ token, showOnlyKRs }) {
       if (response.ok) {
         await fetchObjectives();
         setShowModal(false);
-        setFormData({ title: '', description: '', start_date: '', end_date: '', assignee_id: '', team_id: '' });
+        setFormData({ title: '', description: '', start_date: '', end_date: '', assignee_ids: [], team_ids: [] });
         setStartValue(null);
         setEndValue(null);
         setFormError('');
@@ -395,8 +395,8 @@ function ObjectivesModern({ token, showOnlyKRs }) {
     e.preventDefault();
     setFormError('');
 
-    // Validation: حداقل یکی از assignee_id یا team_id باید انتخاب بشه
-    if (!formData.assignee_id && !formData.team_id) {
+    // Validation: حداقل یکی از assignee_ids یا team_ids باید انتخاب بشه
+    if (formData.assignee_ids.length === 0 && formData.team_ids.length === 0) {
       setFormError('لطفاً حداقل یک مسئول یا تیم انتخاب کنید');
       return;
     }
@@ -407,8 +407,8 @@ function ObjectivesModern({ token, showOnlyKRs }) {
         description: formData.description || null,
         start_date: toYMD(editStartValue),
         end_date: toYMD(editEndValue),
-        assignee_id: formData.assignee_id || null,
-        team_id: formData.team_id || null
+        assignee_ids: formData.assignee_ids.length > 0 ? formData.assignee_ids : null,
+        team_ids: formData.team_ids.length > 0 ? formData.team_ids : null
       };
       const response = await fetch(`${API_BASE_URL}/api/objectives/${selectedObjective.id}`, {
         method: 'PUT',
@@ -733,8 +733,8 @@ function ObjectivesModern({ token, showOnlyKRs }) {
                   category={`${toJalali(obj.start_date)} - ${toJalali(obj.end_date)}`}
                   title={obj.title}
                   description={obj.description}
-                  assignee={obj.assignee}
-                  team={obj.team}
+                  assignees={obj.assignees || []}
+                  teams={obj.teams || []}
                   goalsTitle="نتایج کلیدی"
                   metrics={cardData.metrics}
                   dailyGoals={cardData.dailyGoals}
@@ -871,33 +871,43 @@ function ObjectivesModern({ token, showOnlyKRs }) {
                 {formError && <div className="form-error">{formError}</div>}
 
                 <div className="form-group">
-                  <label>مسئول (کاربر)</label>
+                  <label>مسئولین (کاربران)</label>
                   <select
-                    value={formData.assignee_id}
-                    onChange={(e) => setFormData({ ...formData, assignee_id: e.target.value })}
+                    multiple
+                    value={formData.assignee_ids}
+                    onChange={(e) => setFormData({ 
+                      ...formData, 
+                      assignee_ids: Array.from(e.target.selectedOptions, option => option.value) 
+                    })}
+                    className="multi-select"
                   >
-                    <option value="">انتخاب کنید...</option>
                     {orgUsers.map(user => (
                       <option key={user.user_id} value={user.user_id}>
                         {user.full_name}
                       </option>
                     ))}
                   </select>
+                  <small className="form-hint">برای انتخاب چند کاربر، Ctrl را نگه دارید</small>
                 </div>
 
                 <div className="form-group">
-                  <label>تیم</label>
+                  <label>تیم‌ها</label>
                   <select
-                    value={formData.team_id}
-                    onChange={(e) => setFormData({ ...formData, team_id: e.target.value })}
+                    multiple
+                    value={formData.team_ids}
+                    onChange={(e) => setFormData({ 
+                      ...formData, 
+                      team_ids: Array.from(e.target.selectedOptions, option => option.value) 
+                    })}
+                    className="multi-select"
                   >
-                    <option value="">انتخاب کنید...</option>
                     {teams.map(team => (
                       <option key={team.id} value={team.id}>
                         {team.name}
                       </option>
                     ))}
                   </select>
+                  <small className="form-hint">برای انتخاب چند تیم، Ctrl را نگه دارید</small>
                 </div>
 
                 <p className="assignment-hint">حداقل یکی از موارد بالا باید انتخاب شود</p>

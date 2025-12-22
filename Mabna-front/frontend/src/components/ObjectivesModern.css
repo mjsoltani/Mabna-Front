@@ -779,3 +779,27 @@
   font-size: 13px;
   margin-bottom: 12px;
 }
+
+/* Multi-select styles */
+.multi-select {
+  min-height: 100px;
+  padding: 8px;
+}
+
+.multi-select option {
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin-bottom: 4px;
+}
+
+.multi-select option:checked {
+  background: linear-gradient(0deg, #3b82f6 0%, #3b82f6 100%);
+  color: white;
+}
+
+.form-hint {
+  display: block;
+  font-size: 11px;
+  color: #6b7280;
+  margin-top: 4px;
+}

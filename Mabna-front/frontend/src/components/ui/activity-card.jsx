@@ -11,6 +11,8 @@ export function ActivityCard({
   description = "",
   assignee = null,
   team = null,
+  assignees = [],
+  teams = [],
   goalsTitle = "نتایج کلیدی",
   metrics = [],
   dailyGoals = [],
@@ -22,6 +24,10 @@ export function ActivityCard({
   className
 }) {
   const [isHovering, setIsHovering] = useState(null);
+
+  // پشتیبانی از هر دو فرمت قدیم و جدید
+  const displayAssignees = assignees.length > 0 ? assignees : (assignee ? [assignee] : []);
+  const displayTeams = teams.length > 0 ? teams : (team ? [team] : []);
 
   const METRIC_COLORS = {
     Move: "#FF2D55",
@@ -60,20 +66,20 @@ export function ActivityCard({
             </p>
           )}
           {/* نمایش انتساب */}
-          {(assignee || team) && (
+          {(displayAssignees.length > 0 || displayTeams.length > 0) && (
             <div className="flex flex-wrap gap-2 mt-2">
-              {assignee && (
-                <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-xs">
+              {displayAssignees.map((a, idx) => (
+                <span key={a.user_id || idx} className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-xs">
                   <User className="w-3 h-3" />
-                  {assignee.full_name}
+                  {a.full_name}
                 </span>
-              )}
-              {team && (
-                <span className="inline-flex items-center gap-1 px-2 py-1 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 rounded-full text-xs">
+              ))}
+              {displayTeams.map((t, idx) => (
+                <span key={t.id || idx} className="inline-flex items-center gap-1 px-2 py-1 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 rounded-full text-xs">
                   <Users className="w-3 h-3" />
-                  {team.name}
+                  {t.name}
                 </span>
-              )}
+              ))}
             </div>
           )}
         </div>

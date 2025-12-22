@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import './Dashboard.css';
 import Objectives from './Objectives';
+import ObjectivesModern from './ObjectivesModern';
+import AdminDashboard from './AdminDashboard';
 import TasksV2 from './TasksV2';
 import Invitations from './Invitations';
 import ModernDashboard from './ModernDashboard';
@@ -19,7 +21,8 @@ import {
   RefreshCw, 
   UserCircle, 
   Mail, 
-  LogOut 
+  LogOut,
+  Shield
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -126,15 +129,16 @@ function Dashboard({ user, token, onLogout }) {
       icon: <RefreshCw className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
       tab: 'recurring',
     },
-    {
-      label: 'پروفایل',
-      href: '#',
-      icon: <UserCircle className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
-      tab: 'profile',
-    },
   ];
 
-  if (user.role === 'admin') {
+  // فقط برای admin ها منوی مدیریت سازمان و دعوت کاربران را اضافه کن
+  if (user && user.role === 'admin') {
+    links.splice(1, 0, {
+      label: 'مدیریت سازمان',
+      href: '#',
+      icon: <Shield className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
+      tab: 'admin',
+    });
     links.push({
       label: 'دعوت کاربران',
       href: '#',
@@ -231,8 +235,9 @@ function Dashboard({ user, token, onLogout }) {
                 onTaskClick={handleTaskClick}
               />
             )}
-            {activeTab === 'objectives' && <Objectives token={token} />}
-            {activeTab === 'keyresults' && <Objectives token={token} showOnlyKRs={true} />}
+            {activeTab === 'admin' && user && user.role === 'admin' && <AdminDashboard token={token} user={user} />}
+            {activeTab === 'objectives' && <ObjectivesModern token={token} />}
+            {activeTab === 'keyresults' && <ObjectivesModern token={token} showOnlyKRs={true} />}
             {activeTab === 'tasks' && <TasksV2 token={token} focusTaskId={focusTaskId} />}
             {activeTab === 'recurring' && <RecurringPatterns token={token} />}
             {activeTab === 'profile' && (

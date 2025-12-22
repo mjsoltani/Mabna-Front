@@ -9,6 +9,7 @@ import ModernDashboard from './ModernDashboard';
 import Teams from './Teams';
 import RecurringPatterns from './RecurringPatterns';
 import Profile from './Profile';
+import Calendar from './Calendar';
 import API_BASE_URL from '../config';
 import { Sidebar, SidebarBody, SidebarLink } from '@/components/ui/sidebar';
 import { DashboardNavbar } from '@/components/ui/dashboard-navbar';
@@ -22,7 +23,8 @@ import {
   UserCircle, 
   Mail, 
   LogOut,
-  Shield
+  Shield,
+  Calendar as CalendarIcon
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -96,37 +98,43 @@ function Dashboard({ user, token, onLogout }) {
     {
       label: 'داشبورد',
       href: '#',
-      icon: <LayoutDashboard className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
+      icon: <LayoutDashboard className="text-neutral-700 h-5 w-5 flex-shrink-0" />,
       tab: 'dashboard',
     },
     {
       label: 'اهداف',
       href: '#',
-      icon: <Target className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
+      icon: <Target className="text-neutral-700 h-5 w-5 flex-shrink-0" />,
       tab: 'objectives',
     },
     {
       label: 'نتایج کلیدی',
       href: '#',
-      icon: <BarChart3 className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
+      icon: <BarChart3 className="text-neutral-700 h-5 w-5 flex-shrink-0" />,
       tab: 'keyresults',
     },
     {
       label: 'تیم‌ها',
       href: '#',
-      icon: <Users className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
+      icon: <Users className="text-neutral-700 h-5 w-5 flex-shrink-0" />,
       tab: 'teams',
     },
     {
       label: 'وظایف',
       href: '#',
-      icon: <CheckSquare className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
+      icon: <CheckSquare className="text-neutral-700 h-5 w-5 flex-shrink-0" />,
       tab: 'tasks',
+    },
+    {
+      label: 'تقویم',
+      href: '#',
+      icon: <CalendarIcon className="text-neutral-700 h-5 w-5 flex-shrink-0" />,
+      tab: 'calendar',
     },
     {
       label: 'الگوهای تکرار',
       href: '#',
-      icon: <RefreshCw className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
+      icon: <RefreshCw className="text-neutral-700 h-5 w-5 flex-shrink-0" />,
       tab: 'recurring',
     },
   ];
@@ -136,20 +144,20 @@ function Dashboard({ user, token, onLogout }) {
     links.splice(1, 0, {
       label: 'مدیریت سازمان',
       href: '#',
-      icon: <Shield className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
+      icon: <Shield className="text-neutral-700 h-5 w-5 flex-shrink-0" />,
       tab: 'admin',
     });
     links.push({
       label: 'دعوت کاربران',
       href: '#',
-      icon: <Mail className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
+      icon: <Mail className="text-neutral-700 h-5 w-5 flex-shrink-0" />,
       tab: 'invitations',
     });
   }
 
   return (
     <div className={cn(
-      "flex flex-col md:flex-row bg-gray-100 dark:bg-neutral-800 w-full flex-1 mx-auto border border-neutral-200 dark:border-neutral-700 overflow-hidden",
+      "flex flex-col md:flex-row bg-gray-100 w-full flex-1 mx-auto border border-neutral-200 overflow-hidden",
       "h-screen"
     )}>
       <Sidebar open={open} setOpen={setOpen}>
@@ -162,7 +170,7 @@ function Dashboard({ user, token, onLogout }) {
                   key={idx} 
                   link={link}
                   onClick={() => setActiveTab(link.tab)}
-                  className={activeTab === link.tab ? 'bg-neutral-200 dark:bg-neutral-700 rounded-md' : ''}
+                  className={activeTab === link.tab ? 'bg-neutral-200 rounded-md' : ''}
                 />
               ))}
             </div>
@@ -179,10 +187,10 @@ function Dashboard({ user, token, onLogout }) {
                 }}
                 className="flex flex-col"
               >
-                <span className="text-sm font-medium text-neutral-700 dark:text-neutral-200">
+                <span className="text-sm font-medium text-neutral-700">
                   {user.full_name}
                 </span>
-                <span className="text-xs text-neutral-500 dark:text-neutral-400">
+                <span className="text-xs text-neutral-500">
                   {user.team?.name || user.organization?.name || '-'}
                 </span>
               </motion.div>
@@ -191,7 +199,7 @@ function Dashboard({ user, token, onLogout }) {
               link={{
                 label: 'خروج',
                 href: '#',
-                icon: <LogOut className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
+                icon: <LogOut className="text-neutral-700 h-5 w-5 flex-shrink-0" />,
               }}
               onClick={onLogout}
             />
@@ -200,7 +208,7 @@ function Dashboard({ user, token, onLogout }) {
       </Sidebar>
 
       <div className="flex flex-1 flex-col">
-        <div className="border-b bg-white dark:bg-neutral-900 px-4 md:px-10 py-4">
+        <div className="border-b bg-white px-4 md:px-10 py-4">
           <DashboardNavbar
             user={user}
             notificationCount={unreadCount}
@@ -224,7 +232,7 @@ function Dashboard({ user, token, onLogout }) {
           />
         </div>
         
-        <div className="p-2 md:p-10 bg-white dark:bg-neutral-900 flex flex-col gap-2 flex-1 w-full h-full overflow-auto">
+        <div className="p-2 md:p-10 bg-white flex flex-col gap-2 flex-1 w-full h-full overflow-auto">
           <div className="flex-1">
             {activeTab === 'dashboard' && (
               <ModernDashboard 
@@ -239,6 +247,7 @@ function Dashboard({ user, token, onLogout }) {
             {activeTab === 'objectives' && <ObjectivesModern token={token} />}
             {activeTab === 'keyresults' && <ObjectivesModern token={token} showOnlyKRs={true} />}
             {activeTab === 'tasks' && <TasksV2 token={token} focusTaskId={focusTaskId} />}
+            {activeTab === 'calendar' && <Calendar token={token} />}
             {activeTab === 'recurring' && <RecurringPatterns token={token} />}
             {activeTab === 'profile' && (
               <Profile 

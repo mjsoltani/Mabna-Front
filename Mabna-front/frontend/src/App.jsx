@@ -3,7 +3,6 @@ import './App.css';
 import Login from './components/Login';
 import Register from './components/Register';
 import Dashboard from './components/Dashboard';
-import Calendar from './components/Calendar';
 import Landing from './components/Landing';
 import API_BASE_URL from './config';
 

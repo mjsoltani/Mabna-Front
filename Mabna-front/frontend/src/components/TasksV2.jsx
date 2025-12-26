@@ -16,6 +16,7 @@ function TasksV2({ token, focusTaskId }) {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [showCommentsModal, setShowCommentsModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
@@ -39,6 +40,16 @@ function TasksV2({ token, focusTaskId }) {
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
   const [editingDescription, setEditingDescription] = useState(null);
   const [tempDescription, setTempDescription] = useState('');
+  const [editFormData, setEditFormData] = useState({
+    title: '',
+    description: '',
+    assignee_id: '',
+    key_result_ids: [],
+    status: 'todo',
+    type: 'routine',
+    due_date: ''
+  });
+  const [editDueDateValue, setEditDueDateValue] = useState(null);
 
   useEffect(() => {
     fetchData();
@@ -83,6 +94,29 @@ function TasksV2({ token, focusTaskId }) {
       }
     } catch (error) {
       console.error('Error creating task:', error);
+    }
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/tasks/${selectedTask.id}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(editFormData)
+      });
+      if (response.ok) {
+        setRefreshTrigger(prev => prev + 1);
+        setShowEditModal(false);
+        setSelectedTask(null);
+        setEditFormData({ title: '', description: '', assignee_id: '', key_result_ids: [], status: 'todo', type: 'routine', due_date: '' });
+        setEditDueDateValue(null);
+      }
+    } catch (error) {
+      console.error('Error updating task:', error);
     }
   };
 
@@ -498,6 +532,136 @@ function TasksV2({ token, focusTaskId }) {
     </div>
   );
 
+  const renderEditModal = () => (
+    <div className="modal-overlay" onClick={() => setShowEditModal(false)}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <h3>ویرایش وظیفه</h3>
+        <form onSubmit={handleEditSubmit}>
+          <div className="form-group">
+            <label>عنوان وظیفه</label>
+            <input
+              type="text"
+              value={editFormData.title}
+              onChange={(e) => setEditFormData({ ...editFormData, title: e.target.value })}
+              required
+              placeholder="عنوان وظیفه را وارد کنید"
+            />
+          </div>
+
+          <div className="form-group">
+            <label>توضیحات (اختیاری)</label>
+            <MentionTextarea
+              value={editFormData.description}
+              onChange={(text) => setEditFormData({ ...editFormData, description: text })}
+              users={users}
+              placeholder="توضیحات کامل وظیفه را وارد کنید... (برای mention کردن @ بزنید)"
+              rows={4}
+            />
+            <small style={{ color: '#6b7280', fontSize: '12px', marginTop: '4px', display: 'block' }}>
+              💡 برای mention کردن کاربران، @ بزنید
+            </small>
+          </div>
+
+          <div className="form-group">
+            <label>نوع وظیفه</label>
+            <select
+              value={editFormData.type}
+              onChange={(e) => setEditFormData({ ...editFormData, type: e.target.value })}
+            >
+              <option value="routine">معمولی</option>
+              <option value="special">ویژه</option>
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label>وضعیت</label>
+            <select
+              value={editFormData.status}
+              onChange={(e) => setEditFormData({ ...editFormData, status: e.target.value })}
+            >
+              <option value="todo">انجام نشده</option>
+              <option value="in_progress">در حال انجام</option>
+              <option value="done">انجام شده</option>
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label>تخصیص به</label>
+            <select
+              value={editFormData.assignee_id}
+              onChange={(e) => setEditFormData({ ...editFormData, assignee_id: e.target.value })}
+              required
+            >
+              <option value="">انتخاب کاربر</option>
+              {users.map(user => (
+                <option key={user.user_id} value={user.user_id}>{user.full_name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label>نتایج کلیدی (اختیاری)</label>
+            <select
+              multiple
+              value={editFormData.key_result_ids}
+              onChange={(e) => setEditFormData({
+                ...editFormData,
+                key_result_ids: Array.from(e.target.selectedOptions, option => option.value)
+              })}
+            >
+              {keyResults.map(kr => (
+                <option key={kr.id} value={kr.id}>{kr.title}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label>سررسید (اختیاری)</label>
+            <DatePicker
+              value={editDueDateValue}
+              onChange={(date) => {
+                setEditDueDateValue(date);
+                if (date) {
+                  const d = date.toDate();
+                  const y = d.getFullYear();
+                  const m = String(d.getMonth() + 1).padStart(2, '0');
+                  const day = String(d.getDate()).padStart(2, '0');
+                  setEditFormData({ ...editFormData, due_date: `${y}-${m}-${day}` });
+                } else {
+                  setEditFormData({ ...editFormData, due_date: '' });
+                }
+              }}
+              calendar={persian}
+              locale={persian_fa}
+              placeholder="انتخاب تاریخ سررسید"
+              format="YYYY/MM/DD"
+              style={{ width: '100%' }}
+            />
+            {editDueDateValue && (
+              <button
+                type="button"
+                className="btn-clear-date"
+                onClick={() => {
+                  setEditDueDateValue(null);
+                  setEditFormData({ ...editFormData, due_date: '' });
+                }}
+              >
+                ✕ حذف سررسید
+              </button>
+            )}
+          </div>
+
+          <div className="form-actions">
+            <button type="submit" className="btn-primary">ذخیره تغییرات</button>
+            <button type="button" className="btn-secondary" onClick={() => setShowEditModal(false)}>
+              انصراف
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+
   const renderDetailsModal = () => (
     <div className="modal-overlay" onClick={() => setShowCommentsModal(false)}>
       <div className="modal-content large" onClick={(e) => e.stopPropagation()}>
@@ -566,15 +730,17 @@ function TasksV2({ token, focusTaskId }) {
               ) : (
                 <p className="no-description">توضیحاتی وجود ندارد</p>
               )}
-              <button
-                className="btn-edit-description"
-                onClick={() => {
-                  setEditingDescription(selectedTask.id);
-                  setTempDescription(selectedTask.description || '');
-                }}
-              >
-                ✏️ ویرایش توضیحات
-              </button>
+              {selectedTask.is_creator && (
+                <button
+                  className="btn-edit-description"
+                  onClick={() => {
+                    setEditingDescription(selectedTask.id);
+                    setTempDescription(selectedTask.description || '');
+                  }}
+                >
+                  ✏️ ویرایش توضیحات
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -656,16 +822,38 @@ function TasksV2({ token, focusTaskId }) {
         </div>
 
         <div className="modal-footer">
-          <button
-            className="btn-delete"
-            onClick={() => {
-              if (confirm('آیا مطمئن هستید که می‌خواهید این وظیفه را حذف کنید؟')) {
-                handleDeleteTask(selectedTask.id);
-              }
-            }}
-          >
-            حذف وظیفه
-          </button>
+          {selectedTask.is_creator && (
+            <>
+              <button
+                className="btn-primary"
+                onClick={() => {
+                  setEditFormData({
+                    title: selectedTask.title,
+                    description: selectedTask.description || '',
+                    assignee_id: selectedTask.assignee?.user_id || '',
+                    key_result_ids: selectedTask.key_results?.map(kr => kr.id) || [],
+                    status: selectedTask.status,
+                    type: selectedTask.type || 'routine',
+                    due_date: selectedTask.due_date || ''
+                  });
+                  setEditDueDateValue(selectedTask.due_date ? new Date(selectedTask.due_date) : null);
+                  setShowEditModal(true);
+                }}
+              >
+                ویرایش وظیفه
+              </button>
+              <button
+                className="btn-delete"
+                onClick={() => {
+                  if (confirm('آیا مطمئن هستید که می‌خواهید این وظیفه را حذف کنید؟')) {
+                    handleDeleteTask(selectedTask.id);
+                  }
+                }}
+              >
+                حذف وظیفه
+              </button>
+            </>
+          )}
           <button
             className="btn-secondary"
             onClick={() => setShowCommentsModal(false)}
@@ -711,6 +899,7 @@ function TasksV2({ token, focusTaskId }) {
       </div>
 
       {showModal && renderCreateModal()}
+      {showEditModal && renderEditModal()}
       {showCommentsModal && selectedTask && renderDetailsModal()}
     </div>
   );

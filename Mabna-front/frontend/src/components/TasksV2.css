@@ -739,3 +739,138 @@
   padding-top: 16px;
   border-top: 1px solid #e5e7eb;
 }
+/* Edit Task Styles */
+.task-edit-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.btn-edit-task {
+  padding: 8px 16px;
+  background: #f0f9ff;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-edit-task:hover {
+  background: #e0f2fe;
+  border-color: #7dd3fc;
+}
+
+.creator-only-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Permission-based visibility */
+.hidden-for-non-creator {
+  display: none;
+}
+
+.visible-for-creator {
+  display: flex;
+}
+
+/* Edit Modal Specific Styles */
+.edit-modal-content {
+  max-width: 600px;
+  width: 90vw;
+}
+
+.edit-form-section {
+  margin-bottom: 20px;
+}
+
+.edit-form-section:last-child {
+  margin-bottom: 0;
+}
+
+.form-section-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+/* Enhanced button styles for creator actions */
+.btn-creator-action {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-creator-edit {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  color: white;
+}
+
+.btn-creator-edit:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.btn-creator-delete {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+}
+
+.btn-creator-delete:hover {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+/* Status indicators for creator */
+.creator-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: #f0f9ff;
+  color: #0369a1;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.creator-badge::before {
+  content: "👤";
+  font-size: 10px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .modal-footer {
+    flex-direction: column;
+  }
+  
+  .creator-only-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .btn-creator-action {
+    width: 100%;
+    justify-content: center;
+  }
+}

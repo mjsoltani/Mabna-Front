@@ -641,34 +641,38 @@ function Objectives({ token, showOnlyKRs }) {
             <div className="objective-header">
               <h3>{obj.title}</h3>
               <div className="objective-actions">
-                <button
-                  className="btn-secondary"
-                  onClick={() => {
-                    setSelectedObjective(obj);
-                    setFormData({ 
-                      title: obj.title, 
-                      description: obj.description || '',
-                      start_date: obj.start_date, 
-                      end_date: obj.end_date 
-                    });
-                    setEditStartValue(new Date(obj.start_date));
-                    setEditEndValue(new Date(obj.end_date));
-                    setShowEditModal(true);
-                  }}
-                >
-                  ویرایش
-                </button>
+                {obj.is_creator && (
+                  <>
+                    <button
+                      className="btn-secondary"
+                      onClick={() => {
+                        setSelectedObjective(obj);
+                        setFormData({ 
+                          title: obj.title, 
+                          description: obj.description || '',
+                          start_date: obj.start_date, 
+                          end_date: obj.end_date 
+                        });
+                        setEditStartValue(new Date(obj.start_date));
+                        setEditEndValue(new Date(obj.end_date));
+                        setShowEditModal(true);
+                      }}
+                    >
+                      ویرایش
+                    </button>
+                    <button
+                      className="btn-delete"
+                      onClick={() => setDeleteConfirm(obj.id)}
+                    >
+                      حذف
+                    </button>
+                  </>
+                )}
                 <button
                   className="btn-secondary"
                   onClick={() => fetchReport(obj.id)}
                 >
                   گزارش
-                </button>
-                <button
-                  className="btn-delete"
-                  onClick={() => setDeleteConfirm(obj.id)}
-                >
-                  حذف
                 </button>
               </div>
             </div>
@@ -707,43 +711,49 @@ function Objectives({ token, showOnlyKRs }) {
                       >
                         📊
                       </button>
-                      <button
-                        className="btn-icon"
-                        onClick={() => {
-                          setSelectedKR(kr);
-                          setKrFormData({
-                            title: kr.title,
-                            initial_value: kr.initial_value,
-                            target_value: kr.target_value
-                          });
-                          setShowEditKRModal(true);
-                        }}
-                        title="ویرایش"
-                      >
-                        ✏️
-                      </button>
-                      <button
-                        className="btn-icon btn-danger"
-                        onClick={() => setDeleteKRConfirm(kr.id)}
-                        title="حذف"
-                      >
-                        🗑️
-                      </button>
+                      {obj.is_creator && (
+                        <>
+                          <button
+                            className="btn-icon"
+                            onClick={() => {
+                              setSelectedKR(kr);
+                              setKrFormData({
+                                title: kr.title,
+                                initial_value: kr.initial_value,
+                                target_value: kr.target_value
+                              });
+                              setShowEditKRModal(true);
+                            }}
+                            title="ویرایش"
+                          >
+                            ✏️
+                          </button>
+                          <button
+                            className="btn-icon btn-danger"
+                            onClick={() => setDeleteKRConfirm(kr.id)}
+                            title="حذف"
+                          >
+                            🗑️
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
                 ))}
               </div>
             )}
 
-            <button
-              className="btn-primary"
-              onClick={() => {
-                setSelectedObjective(obj.id);
-                setShowKRModal(true);
-              }}
-            >
-              + نتیجه کلیدی
-            </button>
+            {obj.is_creator && (
+              <button
+                className="btn-primary"
+                onClick={() => {
+                  setSelectedObjective(obj.id);
+                  setShowKRModal(true);
+                }}
+              >
+                + نتیجه کلیدی
+              </button>
+            )}
           </div>
         ))}
       </div>

@@ -106,7 +106,7 @@ function TasksKanban({ token, onTaskClick, onNewTask, refreshTrigger }) {
                 color={status.color} 
                 count={statusTasks.length}
               />
-              <KanbanCards>
+              <KanbanCards id={status.id}>
                 {statusTasks.map((task, index) => (
                   <KanbanCard
                     key={task.id}

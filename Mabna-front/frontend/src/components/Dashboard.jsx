@@ -23,7 +23,6 @@ import {
   UserCircle, 
   Mail, 
   LogOut,
-  Shield,
   Calendar as CalendarIcon
 } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -139,14 +138,8 @@ function Dashboard({ user, token, onLogout }) {
     },
   ];
 
-  // فقط برای admin ها منوی مدیریت سازمان و دعوت کاربران را اضافه کن
+  // فقط برای admin ها منوی دعوت کاربران را اضافه کن
   if (user && user.role === 'admin') {
-    links.splice(1, 0, {
-      label: 'مدیریت سازمان',
-      href: '#',
-      icon: <Shield className="text-neutral-700 h-5 w-5 flex-shrink-0" />,
-      tab: 'admin',
-    });
     links.push({
       label: 'دعوت کاربران',
       href: '#',
@@ -234,7 +227,10 @@ function Dashboard({ user, token, onLogout }) {
         
         <div className="p-2 md:p-10 bg-white flex flex-col gap-2 flex-1 w-full h-full overflow-auto">
           <div className="flex-1">
-            {activeTab === 'dashboard' && (
+            {activeTab === 'dashboard' && user && user.role === 'admin' && (
+              <AdminDashboard token={token} user={user} />
+            )}
+            {activeTab === 'dashboard' && user && user.role !== 'admin' && (
               <ModernDashboard 
                 token={token} 
                 onObjectiveClick={(objectiveId) => {
@@ -243,7 +239,6 @@ function Dashboard({ user, token, onLogout }) {
                 onTaskClick={handleTaskClick}
               />
             )}
-            {activeTab === 'admin' && user && user.role === 'admin' && <AdminDashboard token={token} user={user} />}
             {activeTab === 'objectives' && <ObjectivesModern token={token} />}
             {activeTab === 'keyresults' && <ObjectivesModern token={token} showOnlyKRs={true} />}
             {activeTab === 'tasks' && <TasksV2 token={token} focusTaskId={focusTaskId} />}

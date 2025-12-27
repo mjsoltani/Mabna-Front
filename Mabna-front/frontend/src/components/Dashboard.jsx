@@ -241,7 +241,7 @@ function Dashboard({ user, token, onLogout }) {
             )}
             {activeTab === 'objectives' && <ObjectivesModern token={token} />}
             {activeTab === 'keyresults' && <ObjectivesModern token={token} showOnlyKRs={true} />}
-            {activeTab === 'tasks' && <TasksV2 token={token} focusTaskId={focusTaskId} />}
+            {activeTab === 'tasks' && <TasksV2 token={token} user={user} focusTaskId={focusTaskId} />}
             {activeTab === 'calendar' && <Calendar token={token} />}
             {activeTab === 'recurring' && <RecurringPatterns token={token} />}
             {activeTab === 'profile' && (

@@ -9,12 +9,13 @@ import {
 } from '@/components/ui/kanban';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { getDeadlineStatus, formatDateToPersian } from '../utils/deadlineUtils';
-import { Calendar, CheckCircle2 } from 'lucide-react';
+import { Calendar, CheckCircle2, Shield, Archive } from 'lucide-react';
 
 const statuses = [
   { id: 'todo', name: 'انجام نشده', color: '#f59e0b' },
   { id: 'in_progress', name: 'در حال انجام', color: '#3b82f6' },
   { id: 'done', name: 'انجام شده', color: '#10b981' },
+  { id: 'approved', name: 'تأیید شده', color: '#8b5cf6' },
 ];
 
 function TasksKanban({ token, onTaskClick, onNewTask, refreshTrigger }) {
@@ -48,7 +49,28 @@ function TasksKanban({ token, onTaskClick, onNewTask, refreshTrigger }) {
     const taskId = active.id;
     const task = tasks.find(t => t.id === taskId);
     
-    if (!task || task.status === newStatus) return;
+    if (!task) return;
+
+    // اگر وظیفه به ستون approved کشیده شد
+    if (newStatus === 'approved') {
+      // فقط وظایف done قابل تأیید هستند
+      if (task.status !== 'done') {
+        alert('فقط وظایف انجام شده قابل تأیید نهایی هستند');
+        return;
+      }
+      // تأیید نهایی وظیفه
+      await handleApproveTask(taskId);
+      return;
+    }
+
+    // اگر وظیفه تأیید شده به ستون دیگری کشیده شد
+    if (task.is_approved && newStatus !== 'approved') {
+      alert('وظایف تأیید شده قابل تغییر وضعیت نیستند');
+      return;
+    }
+
+    // تغییر وضعیت معمولی
+    if (task.status === newStatus) return;
 
     // ذخیره state قبلی برای rollback
     const previousTasks = [...tasks];
@@ -69,11 +91,9 @@ function TasksKanban({ token, onTaskClick, onNewTask, refreshTrigger }) {
       });
       
       if (!response.ok) {
-        // برگرداندن به حالت قبلی در صورت خطا
         setTasks(previousTasks);
         console.error('Failed to update task status');
       } else {
-        // رفرش کامل برای اطمینان از sync بودن
         await fetchTasks();
       }
     } catch (error) {
@@ -82,8 +102,56 @@ function TasksKanban({ token, onTaskClick, onNewTask, refreshTrigger }) {
     }
   };
 
+  const handleApproveTask = async (taskId) => {
+    const previousTasks = [...tasks];
+
+    // آپدیت optimistic
+    setTasks(prevTasks => prevTasks.map(t => 
+      t.id === taskId ? { 
+        ...t, 
+        is_approved: true, 
+        approved_at: new Date().toISOString(),
+        approved_by: { full_name: 'شما' } // موقتی
+      } : t
+    ));
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/tasks/${taskId}/approve`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          approval_note: 'تأیید شده از طریق kanban'
+        })
+      });
+      
+      if (!response.ok) {
+        setTasks(previousTasks);
+        const errorData = await response.json();
+        alert('خطا در تأیید وظیفه: ' + (errorData.message || 'خطای نامشخص'));
+      } else {
+        await fetchTasks();
+      }
+    } catch (error) {
+      console.error('Error approving task:', error);
+      setTasks(previousTasks);
+      alert('خطا در ارتباط با سرور');
+    }
+  };
+
   const getTasksByStatus = (statusId) => {
-    return tasks.filter(task => task.status === statusId);
+    if (statusId === 'approved') {
+      // وظایف تأیید شده: done + is_approved = true
+      return tasks.filter(task => task.status === 'done' && task.is_approved === true);
+    } else if (statusId === 'done') {
+      // وظایف انجام شده اما تأیید نشده: done + is_approved = false/null
+      return tasks.filter(task => task.status === 'done' && task.is_approved !== true);
+    } else {
+      // سایر وضعیت‌ها
+      return tasks.filter(task => task.status === statusId);
+    }
   };
 
   if (loading) {
@@ -121,10 +189,22 @@ function TasksKanban({ token, onTaskClick, onNewTask, refreshTrigger }) {
                         <p className="m-0 flex-1 font-medium text-sm line-clamp-2">
                           {task.title}
                         </p>
-                        {task.type === 'special' && (
-                          <span className="text-yellow-500">⭐</span>
-                        )}
+                        <div className="flex items-center gap-1">
+                          {task.type === 'special' && (
+                            <span className="text-yellow-500">⭐</span>
+                          )}
+                          {task.is_approved && (
+                            <Archive className="w-4 h-4 text-purple-500" title="تأیید شده" />
+                          )}
+                        </div>
                       </div>
+                      
+                      {task.is_approved && (
+                        <div className="flex items-center gap-1 text-xs text-purple-600 bg-purple-50 px-2 py-1 rounded">
+                          <Shield className="w-3 h-3" />
+                          <span>تأیید شده توسط {task.approved_by?.full_name || 'مدیر'}</span>
+                        </div>
+                      )}
                       
                       {task.due_date && (
                         <div className="flex items-center gap-1 text-xs">

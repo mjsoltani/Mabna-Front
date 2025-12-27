@@ -10,7 +10,7 @@ import persian_fa from 'react-date-object/locales/persian_fa';
 import TasksKanban from './TasksKanban';
 import { CheckSquare } from 'lucide-react';
 
-function TasksV2({ token, focusTaskId }) {
+function TasksV2({ token, user, focusTaskId }) {
   const [users, setUsers] = useState([]);
   const [keyResults, setKeyResults] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -376,6 +376,56 @@ function TasksV2({ token, focusTaskId }) {
     fetchAttachments(task.id);
   };
 
+  const handleApproveTask = async (taskId) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/tasks/${taskId}/approve`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          approval_note: 'تأیید شده از طریق جزئیات وظیفه'
+        })
+      });
+      
+      if (response.ok) {
+        setRefreshTrigger(prev => prev + 1);
+        setShowCommentsModal(false);
+        alert('وظیفه با موفقیت تأیید نهایی شد');
+      } else {
+        const errorData = await response.json();
+        alert('خطا در تأیید وظیفه: ' + (errorData.message || 'خطای نامشخص'));
+      }
+    } catch (error) {
+      console.error('Error approving task:', error);
+      alert('خطا در ارتباط با سرور');
+    }
+  };
+
+  const handleUnapproveTask = async (taskId) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/tasks/${taskId}/approve`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (response.ok) {
+        setRefreshTrigger(prev => prev + 1);
+        setShowCommentsModal(false);
+        alert('تأیید وظیفه لغو شد');
+      } else {
+        const errorData = await response.json();
+        alert('خطا در لغو تأیید: ' + (errorData.message || 'خطای نامشخص'));
+      }
+    } catch (error) {
+      console.error('Error unapproving task:', error);
+      alert('خطا در ارتباط با سرور');
+    }
+  };
+
   if (loading) return <div className="loading">در حال بارگذاری...</div>;
 
   const handleKanbanTaskClick = (task) => {
@@ -674,6 +724,7 @@ function TasksV2({ token, focusTaskId }) {
               value={selectedTask.status}
               onChange={(e) => handleStatusChange(selectedTask.id, e.target.value)}
               className="status-select"
+              disabled={selectedTask.is_approved}
             >
               <option value="todo">انجام نشده</option>
               <option value="in_progress">در حال انجام</option>
@@ -681,12 +732,37 @@ function TasksV2({ token, focusTaskId }) {
             </select>
           </div>
 
+          {selectedTask.is_approved && (
+            <div className="detail-row">
+              <span className="label">تأیید نهایی:</span>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '8px 12px',
+                background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+                color: 'white',
+                borderRadius: '8px',
+                fontSize: '14px',
+                fontWeight: '600'
+              }}>
+                ✅ تأیید شده توسط {selectedTask.approved_by?.full_name || 'مدیر'}
+                {selectedTask.approved_at && (
+                  <span style={{ fontSize: '12px', opacity: '0.9' }}>
+                    ({new Date(selectedTask.approved_at).toLocaleDateString('fa-IR')})
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+
           <div className="detail-row">
             <span className="label">نوع:</span>
             <select
               value={selectedTask.type || 'routine'}
               onChange={(e) => handleTypeChange(selectedTask.id, e.target.value)}
               className="type-select"
+              disabled={selectedTask.is_approved}
             >
               <option value="routine">معمولی</option>
               <option value="special">ویژه</option>
@@ -822,6 +898,58 @@ function TasksV2({ token, focusTaskId }) {
         </div>
 
         <div className="modal-footer">
+          {/* دکمه‌های تأیید نهایی - فقط برای مدیران */}
+          {user && user.role === 'admin' && selectedTask.status === 'done' && !selectedTask.is_approved && (
+            <button
+              className="btn-approve"
+              onClick={() => {
+                if (confirm('آیا مطمئن هستید که می‌خواهید این وظیفه را تأیید نهایی کنید؟')) {
+                  handleApproveTask(selectedTask.id);
+                }
+              }}
+              style={{
+                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                color: 'white',
+                border: 'none',
+                padding: '10px 20px',
+                borderRadius: '8px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}
+            >
+              ✅ تأیید نهایی
+            </button>
+          )}
+          
+          {/* دکمه لغو تأیید - فقط برای مدیران */}
+          {user && user.role === 'admin' && selectedTask.is_approved && (
+            <button
+              className="btn-unapprove"
+              onClick={() => {
+                if (confirm('آیا مطمئن هستید که می‌خواهید تأیید این وظیفه را لغو کنید؟')) {
+                  handleUnapproveTask(selectedTask.id);
+                }
+              }}
+              style={{
+                background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                color: 'white',
+                border: 'none',
+                padding: '10px 20px',
+                borderRadius: '8px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}
+            >
+              ❌ لغو تأیید
+            </button>
+          )}
+
           {selectedTask.is_creator && (
             <>
               <button

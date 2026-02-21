@@ -208,7 +208,7 @@ function Objectives({ token, showOnlyKRs }) {
         setKrFormData({ title: '', initial_value: 0, target_value: 0 });
       } else {
         const error = await response.json();
-        alert(error.error || 'خطا در ویرایش نتیجه کلیدی');
+        alert(error.error || 'خطا در ویرایش شاخص کلیدی');
       }
     } catch (error) {
       console.error('Error updating key result:', error);
@@ -226,7 +226,7 @@ function Objectives({ token, showOnlyKRs }) {
         setDeleteKRConfirm(null);
       } else {
         const error = await response.json();
-        alert(error.error || 'خطا در حذف نتیجه کلیدی');
+        alert(error.error || 'خطا در حذف شاخص کلیدی');
       }
     } catch (error) {
       console.error('Error deleting key result:', error);
@@ -238,8 +238,12 @@ function Objectives({ token, showOnlyKRs }) {
   return (
     <div className="objectives-container">
       <div className="objectives-header">
-        <h2>{showOnlyKRs ? 'نتایج کلیدی' : 'اهداف'}</h2>
-        {!showOnlyKRs && (
+        <h2>{showOnlyKRs ? 'شاخص‌های کلیدی' : 'اهداف'}</h2>
+        {showOnlyKRs ? (
+          <div className="header-info">
+            <p className="text-muted">برای ایجاد شاخص کلیدی جدید، به بخش اهداف بروید و روی دکمه "+ شاخص کلیدی" در هر هدف کلیک کنید</p>
+          </div>
+        ) : (
           <button className="btn-primary" onClick={() => setShowModal(true)}>
             + هدف جدید
           </button>
@@ -364,7 +368,7 @@ function Objectives({ token, showOnlyKRs }) {
       {showKRModal && (
         <div className="modal-overlay" onClick={() => setShowKRModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h3>اضافه کردن نتیجه کلیدی</h3>
+            <h3>اضافه کردن شاخص کلیدی</h3>
             <form onSubmit={handleAddKR}>
               <div className="form-group">
                 <label>عنوان</label>
@@ -414,7 +418,7 @@ function Objectives({ token, showOnlyKRs }) {
             <div className="report-header">
               <p><strong>تاریخ شروع:</strong> {reportData.start_date}</p>
               <p><strong>تاریخ پایان:</strong> {reportData.end_date}</p>
-              <p><strong>تعداد نتایج کلیدی:</strong> {reportData.total_key_results}</p>
+              <p><strong>تعداد شاخص‌های کلیدی:</strong> {reportData.total_key_results}</p>
             </div>
 
             <div className="report-krs">
@@ -476,7 +480,7 @@ function Objectives({ token, showOnlyKRs }) {
       {showEditKRModal && selectedKR && (
         <div className="modal-overlay" onClick={() => setShowEditKRModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h3>ویرایش نتیجه کلیدی</h3>
+            <h3>ویرایش شاخص کلیدی</h3>
             <form onSubmit={handleEditKR}>
               <div className="form-group">
                 <label>عنوان</label>
@@ -521,8 +525,8 @@ function Objectives({ token, showOnlyKRs }) {
       {deleteKRConfirm && (
         <div className="modal-overlay" onClick={() => setDeleteKRConfirm(null)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h3>حذف نتیجه کلیدی</h3>
-            <p>آیا مطمئن هستید که می‌خواهید این نتیجه کلیدی را حذف کنید؟</p>
+            <h3>حذف شاخص کلیدی</h3>
+            <p>آیا مطمئن هستید که می‌خواهید این شاخص کلیدی را حذف کنید؟</p>
             <p className="warning-text">⚠️ ارتباط با وظایف قطع می‌شود ولی خود وظایف حذف نمی‌شوند.</p>
             <div className="form-actions">
               <button
@@ -545,7 +549,7 @@ function Objectives({ token, showOnlyKRs }) {
       {showKRReportModal && krReportData && (
         <div className="modal-overlay" onClick={() => setShowKRReportModal(false)}>
           <div className="modal-content large" onClick={(e) => e.stopPropagation()}>
-            <h3>گزارش نتیجه کلیدی: {krReportData.title}</h3>
+            <h3>گزارش شاخص کلیدی: {krReportData.title}</h3>
             
             <div className="kr-report-header">
               <div className="report-badge">
@@ -680,7 +684,7 @@ function Objectives({ token, showOnlyKRs }) {
             <div className="objective-info">
               <p>📅 {toJalali(obj.start_date)} تا {toJalali(obj.end_date)}</p>
               {obj.description && <p className="objective-description">📝 {obj.description}</p>}
-              <p>📊 {obj.key_results?.length || 0} نتیجه کلیدی</p>
+              <p>📊 {obj.key_results?.length || 0} شاخص کلیدی</p>
             </div>
 
             {obj.key_results && obj.key_results.length > 0 && (
@@ -705,11 +709,11 @@ function Objectives({ token, showOnlyKRs }) {
                     </div>
                     <div className="kr-actions">
                       <button
-                        className="btn-icon"
+                        className="btn-secondary"
                         onClick={() => fetchKRReport(kr.id)}
-                        title="گزارش"
+                        title="مشاهده جزئیات و گزارش"
                       >
-                        📊
+                        📊 مشاهده جزئیات
                       </button>
                       {obj.is_creator && (
                         <>
@@ -751,7 +755,7 @@ function Objectives({ token, showOnlyKRs }) {
                   setShowKRModal(true);
                 }}
               >
-                + نتیجه کلیدی
+                + شاخص کلیدی
               </button>
             )}
           </div>

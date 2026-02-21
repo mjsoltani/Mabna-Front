@@ -6,35 +6,32 @@ function Register({ onRegister }) {
     full_name: '',
     email: '',
     password: '',
-    organization_id: '', // برای انتخاب تیم موجود
     confirm_password: ''
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [validationError, setValidationError] = useState('');
   const [showPasswords, setShowPasswords] = useState(false);
-  const [organizations, setOrganizations] = useState([]);
-  const [loadingOrgs, setLoadingOrgs] = useState(true);
+  const [organization, setOrganization] = useState(null);
+  const [loadingOrg, setLoadingOrg] = useState(true);
 
   useEffect(() => {
-    fetchOrganizations();
+    fetchDefaultOrganization();
   }, []);
 
-  const fetchOrganizations = async () => {
+  const fetchDefaultOrganization = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/organizations`);
+      const response = await fetch(`${API_BASE_URL}/api/organizations/default`);
       if (response.ok) {
         const data = await response.json();
-        setOrganizations(data);
+        setOrganization(data);
       } else {
-        console.warn('Could not fetch organizations');
-        setOrganizations([]);
+        console.warn('Could not fetch default organization');
       }
     } catch (err) {
-      console.error('Error fetching organizations:', err);
-      setOrganizations([]);
+      console.error('Error fetching default organization:', err);
     } finally {
-      setLoadingOrgs(false);
+      setLoadingOrg(false);
     }
   };
 
@@ -68,18 +65,13 @@ function Register({ onRegister }) {
       setLoading(false);
       return;
     }
-    if (!formData.organization_id.trim()) {
-      setValidationError('لطفاً یک تیم را انتخاب کنید');
-      setLoading(false);
-      return;
-    }
 
     try {
       const payload = {
         full_name: formData.full_name,
         email: formData.email,
         password: formData.password,
-        organization_id: formData.organization_id
+        organization_id: organization?.id || 'default-org-afagh-saram'
       };
       const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
         method: 'POST',
@@ -117,12 +109,20 @@ function Register({ onRegister }) {
       <div className="section-intro">
         <div className="intro-icon">👤</div>
         <div className="intro-text">
-          <div className="intro-title">پیوستن به تیم</div>
-          <div className="intro-subtitle">با تکمیل فرم، به تیم انتخابی خود بپیوندید.</div>
+          <div className="intro-title">پیوستن به سازمان</div>
+          <div className="intro-subtitle">
+            {loadingOrg ? (
+              'در حال بارگذاری...'
+            ) : organization ? (
+              `شما به سازمان ${organization.name} اضافه خواهید شد`
+            ) : (
+              'ثبت‌نام در سیستم'
+            )}
+          </div>
           <ul className="intro-list">
             <li>نام و ایمیل معتبر</li>
             <li>رمز عبور حداقل ۶ کاراکتر</li>
-            <li>انتخاب تیم از لیست</li>
+            {organization && <li>سازمان: {organization.name}</li>}
           </ul>
         </div>
       </div>
@@ -138,8 +138,6 @@ function Register({ onRegister }) {
           placeholder="علی احمدی"
         />
       </div>
-
-      
 
       <div className="form-group">
         <label>ایمیل</label>
@@ -185,45 +183,7 @@ function Register({ onRegister }) {
         </div>
       </div>
 
-      <div className="form-group">
-        <label>انتخاب تیم</label>
-        {loadingOrgs ? (
-          <div style={{ padding: '10px', textAlign: 'center', color: '#666' }}>
-            در حال بارگذاری تیم‌ها...
-          </div>
-        ) : organizations.length > 0 ? (
-          <>
-            <select
-              name="organization_id"
-              value={formData.organization_id}
-              onChange={handleChange}
-              required
-              style={{
-                width: '100%',
-                padding: '10px',
-                borderRadius: '4px',
-                border: '1px solid #ddd',
-                fontSize: '14px',
-                backgroundColor: 'white'
-              }}
-            >
-              <option value="">یک تیم را انتخاب کنید</option>
-              {organizations.map((org) => (
-                <option key={org.id} value={org.id}>
-                  {org.name}
-                </option>
-              ))}
-            </select>
-            <div className="help-text">تیم خود را از لیست انتخاب کنید</div>
-          </>
-        ) : (
-          <div className="help-text" style={{ color: '#e67e22', padding: '10px' }}>
-            ⚠️ هیچ تیمی در دسترس نیست. لطفاً با مدیر سیستم تماس بگیرید.
-          </div>
-        )}
-      </div>
-
-      <button type="submit" className="btn-primary" disabled={loading}>
+      <button type="submit" className="btn-primary" disabled={loading || loadingOrg}>
         {loading ? 'در حال ثبت‌نام...' : 'ثبت‌نام'}
       </button>
     </form>

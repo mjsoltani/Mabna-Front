@@ -8,7 +8,7 @@ import persian_fa from 'react-date-object/locales/persian_fa';
 import { toJalali } from '../utils/dateUtils';
 import './ObjectivesModern.css';
 
-// کامپوننت برای نمایش نتیجه کلیدی
+// کامپوننت برای نمایش شاخص کلیدی
 function KeyResultCard({ keyResult, token, onViewDetails, onCreateTask }) {
   const [cardData, setCardData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -94,7 +94,7 @@ function KeyResultCard({ keyResult, token, onViewDetails, onCreateTask }) {
 
   return (
     <ActivityCard
-      category={keyResult.objective_title || "نتیجه کلیدی"}
+      category={keyResult.objective_title || "شاخص کلیدی"}
       title={keyResult.title}
       goalsTitle="وظایف"
       metrics={cardData.metrics}
@@ -517,7 +517,7 @@ function ObjectivesModern({ token, showOnlyKRs }) {
         setKrFormData({ title: '', initial_value: 0, target_value: 0 });
       } else {
         const error = await response.json();
-        alert(error.error || 'خطا در ویرایش نتیجه کلیدی');
+        alert(error.error || 'خطا در ویرایش شاخص کلیدی');
       }
     } catch (error) {
       console.error('Error updating key result:', error);
@@ -535,7 +535,7 @@ function ObjectivesModern({ token, showOnlyKRs }) {
         setDeleteKRConfirm(null);
       } else {
         const error = await response.json();
-        alert(error.error || 'خطا در حذف نتیجه کلیدی');
+        alert(error.error || 'خطا در حذف شاخص کلیدی');
       }
     } catch (error) {
       console.error('Error deleting key result:', error);
@@ -562,7 +562,7 @@ function ObjectivesModern({ token, showOnlyKRs }) {
         setShowCreateTaskModal(false);
         setTaskFormData({ title: '', assignee_id: '' });
         setSelectedKRForTask(null);
-        // رفرش کردن لیست نتایج کلیدی
+        // رفرش کردن لیست شاخص‌های کلیدی
         if (showOnlyKRs) {
           await fetchKeyResults();
         }
@@ -590,7 +590,7 @@ function ObjectivesModern({ token, showOnlyKRs }) {
 
     const metrics = [
       {
-        label: "نتایج کلیدی",
+        label: "شاخص‌های کلیدی",
         value: totalKRs.toString(),
         trend: avgProgress,
         unit: "عدد"
@@ -609,7 +609,7 @@ function ObjectivesModern({ token, showOnlyKRs }) {
       }
     ];
 
-    // تبدیل نتایج کلیدی به اهداف روزانه
+    // تبدیل شاخص‌های کلیدی به اهداف روزانه
     const dailyGoals = keyResults.map(kr => ({
       id: kr.id.toString(),
       title: kr.title,
@@ -623,9 +623,9 @@ function ObjectivesModern({ token, showOnlyKRs }) {
     };
   };
 
-  // تبدیل داده‌های نتایج کلیدی به فرمت ActivityCard
+  // تبدیل داده‌های شاخص‌های کلیدی به فرمت ActivityCard
   const convertKeyResultToActivityCard = async (kr) => {
-    // دریافت جزئیات نتیجه کلیدی شامل tasks
+    // دریافت جزئیات شاخص کلیدی شامل tasks
     try {
       const response = await fetch(`${API_BASE_URL}/api/keyresults/${kr.id}`, {
         headers: {
@@ -702,10 +702,10 @@ function ObjectivesModern({ token, showOnlyKRs }) {
         <div className="mb-8 flex items-center justify-between">
           <div>
             <h1 className="text-4xl font-bold text-zinc-900 mb-2">
-              {showOnlyKRs ? 'نتایج کلیدی' : 'اهداف'}
+              {showOnlyKRs ? 'شاخص‌های کلیدی' : 'اهداف'}
             </h1>
             <p className="text-zinc-600">
-              مدیریت و پیگیری اهداف و نتایج کلیدی
+              مدیریت و پیگیری اهداف و شاخص‌های کلیدی
             </p>
           </div>
           {!showOnlyKRs && (
@@ -735,7 +735,7 @@ function ObjectivesModern({ token, showOnlyKRs }) {
                   description={obj.description}
                   assignees={obj.assignees || []}
                   teams={obj.teams || []}
-                  goalsTitle="نتایج کلیدی"
+                  goalsTitle="شاخص‌های کلیدی"
                   metrics={cardData.metrics}
                   dailyGoals={cardData.dailyGoals}
                   attachmentsCount={obj.attachments?.length || 0}
@@ -817,10 +817,10 @@ function ObjectivesModern({ token, showOnlyKRs }) {
           <div className="text-center py-20">
             <Target className="w-20 h-20 mx-auto text-zinc-300 mb-4" />
             <h3 className="text-2xl font-semibold text-zinc-700 mb-2">
-              هنوز نتیجه کلیدی وجود ندارد
+              هنوز شاخص کلیدی وجود ندارد
             </h3>
             <p className="text-zinc-500 mb-6">
-              ابتدا یک هدف ایجاد کنید و سپس نتایج کلیدی را اضافه کنید
+              ابتدا یک هدف ایجاد کنید و سپس شاخص‌های کلیدی را اضافه کنید
             </p>
           </div>
         )}
@@ -941,7 +941,7 @@ function ObjectivesModern({ token, showOnlyKRs }) {
       {showKRModal && (
         <div className="modal-overlay" onClick={() => setShowKRModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h3>اضافه کردن نتیجه کلیدی</h3>
+            <h3>اضافه کردن شاخص کلیدی</h3>
             <form onSubmit={handleAddKR}>
               <div className="form-group">
                 <label>عنوان</label>
@@ -991,7 +991,7 @@ function ObjectivesModern({ token, showOnlyKRs }) {
             <div className="report-header">
               <p><strong>تاریخ شروع:</strong> {toJalali(reportData.start_date)}</p>
               <p><strong>تاریخ پایان:</strong> {toJalali(reportData.end_date)}</p>
-              <p><strong>تعداد نتایج کلیدی:</strong> {reportData.total_key_results}</p>
+              <p><strong>تعداد شاخص‌های کلیدی:</strong> {reportData.total_key_results}</p>
             </div>
 
             <div className="report-krs">
@@ -1027,7 +1027,7 @@ function ObjectivesModern({ token, showOnlyKRs }) {
         </div>
       )}
 
-      {/* Modal ایجاد وظیفه برای نتیجه کلیدی */}
+      {/* Modal ایجاد وظیفه برای شاخص کلیدی */}
       {showCreateTaskModal && (
         <div className="modal-overlay" onClick={() => setShowCreateTaskModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -1261,7 +1261,7 @@ function ObjectivesModern({ token, showOnlyKRs }) {
         <div className="modal-overlay" onClick={() => setDeleteConfirm(null)}>
           <div className="modal-content small" onClick={(e) => e.stopPropagation()}>
             <h3>حذف هدف</h3>
-            <p>آیا از حذف این هدف مطمئن هستید؟ این عمل قابل بازگشت نیست و تمام نتایج کلیدی مرتبط نیز حذف خواهند شد.</p>
+            <p>آیا از حذف این هدف مطمئن هستید؟ این عمل قابل بازگشت نیست و تمام شاخص‌های کلیدی مرتبط نیز حذف خواهند شد.</p>
             <div className="form-actions">
               <button className="btn-danger" onClick={() => handleDeleteObjective(deleteConfirm)}>
                 حذف

@@ -99,7 +99,7 @@ function DashboardStats({ token, onObjectiveClick, onTaskClick }) {
           <div className="stat-icon">📊</div>
           <div className="stat-content">
             <div className="stat-value">{stats.total_key_results || 0}</div>
-            <div className="stat-label">نتایج کلیدی</div>
+            <div className="stat-label">شاخص‌های کلیدی</div>
           </div>
         </div>
 
@@ -155,12 +155,12 @@ function DashboardStats({ token, onObjectiveClick, onTaskClick }) {
                     </div>
                   </div>
                   <div className="objective-meta">
-                    <span className="meta-item">📊 {krList.length} نتیجه کلیدی</span>
+                    <span className="meta-item">📊 {krList.length} شاخص کلیدی</span>
                     <span className="meta-item">✅ {completedKRs}/{krList.length} تکمیل</span>
                     <span className="meta-item">📅 {toJalali(obj.start_date)} تا {toJalali(obj.end_date)}</span>
                   </div>
 
-                  {/* نتایج کلیدی */}
+                  {/* شاخص‌های کلیدی */}
                   {krList.length > 0 && (
                     <div className="kr-progress-list">
                       {krList.map(kr => (

@@ -1,0 +1,168 @@
+.enhanced-kr-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+  transition: box-shadow 0.2s;
+}
+
+.enhanced-kr-card:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.kr-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.kr-title-section {
+  flex: 1;
+}
+
+.kr-card-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 6px;
+}
+
+.kr-description {
+  font-size: 14px;
+  color: #6b7280;
+  margin-top: 6px;
+  line-height: 1.5;
+}
+
+.kr-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.kr-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.kr-badge.owner {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.kr-badge.due-date {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.kr-badge.due-date.urgent {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.kr-badge.label {
+  background: #e0e7ff;
+  color: #3730a3;
+}
+
+.kr-progress-section {
+  margin: 12px 0;
+}
+
+.kr-values {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.kr-value-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.kr-value-label {
+  font-size: 11px;
+  color: #9ca3af;
+}
+
+.kr-value-number {
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.kr-progress-bar-container {
+  position: relative;
+  height: 24px;
+  background: #f3f4f6;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.kr-progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981, #059669);
+  transition: width 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 8px;
+}
+
+.kr-progress-bar-fill.warning {
+  background: linear-gradient(90deg, #f59e0b, #d97706);
+}
+
+.kr-progress-bar-fill.danger {
+  background: linear-gradient(90deg, #ef4444, #dc2626);
+}
+
+.kr-progress-text {
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.kr-card-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #f3f4f6;
+}
+
+.btn-kr-action {
+  padding: 6px 12px;
+  font-size: 13px;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-kr-action:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.btn-kr-action.primary {
+  background: #3b82f6;
+  color: #fff;
+  border-color: #3b82f6;
+}
+
+.btn-kr-action.primary:hover {
+  background: #2563eb;
+}

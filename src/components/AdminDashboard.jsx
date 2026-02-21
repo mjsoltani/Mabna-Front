@@ -15,12 +15,7 @@ function AdminDashboard({ token, user }) {
   const [selectedUser, setSelectedUser] = useState('');
 
   useEffect(() => {
-    // چک کردن اینکه کاربر admin است یا نه
-    if (user && user.role !== 'admin') {
-      setError('شما دسترسی به این بخش ندارید. فقط ادمین‌ها می‌توانند این صفحه را مشاهده کنند.');
-      setLoading(false);
-      return;
-    }
+    // فعلاً برای همه نمایش داده می‌شود
     fetchAdminDashboard();
     fetchOrgUsers();
   }, [user]);
@@ -300,7 +295,7 @@ function AdminDashboard({ token, user }) {
                 <div className="objective-info">
                   <p>📅 {obj.start_date ? toJalali(obj.start_date) : '-'} تا {obj.end_date ? toJalali(obj.end_date) : '-'}</p>
                   <p>📊 پیشرفت: {obj.progress_percentage || 0}%</p>
-                  <p>🎯 {obj.key_results?.length || 0} نتیجه کلیدی</p>
+                  <p>🎯 {obj.key_results?.length || 0} شاخص کلیدی</p>
                 </div>
                 <div className="progress-bar">
                   <div 

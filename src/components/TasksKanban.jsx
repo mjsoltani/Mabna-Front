@@ -10,6 +10,7 @@ import {
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { getDeadlineStatus, formatDateToPersian } from '../utils/deadlineUtils';
 import { Calendar, CheckCircle2, Shield, Archive } from 'lucide-react';
+import TaskLabels from './ui/task-labels';
 
 const statuses = [
   { id: 'todo', name: 'انجام نشده', color: '#f59e0b' },
@@ -244,6 +245,15 @@ function TasksKanban({ token, onTaskClick, onNewTask, refreshTrigger, filterQuer
                             {task.subtasks.filter(st => st.isCompleted).length}/{task.subtasks.length}
                           </span>
                         </div>
+                      )}
+
+                      {/* Task Labels */}
+                      {task.labels && task.labels.length > 0 && (
+                        <TaskLabels 
+                          labels={task.labels} 
+                          size="small" 
+                          maxDisplay={3}
+                        />
                       )}
 
                       <div className="flex items-center justify-between mt-1">

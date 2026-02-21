@@ -1,0 +1,151 @@
+.attachments-section {
+  margin-top: 20px;
+  padding: 15px;
+  background: #f9fafb;
+  border-radius: 8px;
+}
+
+.attachments-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.attachments-header h4 {
+  margin: 0;
+  color: #374151;
+}
+
+.upload-area {
+  border: 2px dashed #d1d5db;
+  border-radius: 8px;
+  padding: 30px;
+  text-align: center;
+  background: #fff;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.upload-area:hover {
+  border-color: #3b82f6;
+  background: #eff6ff;
+}
+
+.upload-area.drag-over {
+  border-color: #3b82f6;
+  background: #dbeafe;
+}
+
+.upload-icon {
+  font-size: 48px;
+  margin-bottom: 10px;
+}
+
+.upload-text {
+  color: #6b7280;
+  margin-bottom: 5px;
+}
+
+.upload-hint {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.file-input {
+  display: none;
+}
+
+.attachments-list {
+  margin-top: 15px;
+}
+
+.attachment-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  background: #fff;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.attachment-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.file-icon {
+  font-size: 24px;
+}
+
+.attachment-details {
+  flex: 1;
+}
+
+.attachment-name {
+  font-weight: 500;
+  color: #111827;
+  margin-bottom: 3px;
+}
+
+.attachment-meta {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.attachment-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-icon-small {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 5px;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.btn-icon-small:hover {
+  background: #f3f4f6;
+}
+
+.btn-icon-small.delete:hover {
+  background: #fee2e2;
+  color: #ef4444;
+}
+
+.empty-attachments {
+  text-align: center;
+  padding: 20px;
+  color: #9ca3af;
+}
+
+.uploading-indicator {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  background: #eff6ff;
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #e5e7eb;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

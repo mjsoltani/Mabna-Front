@@ -103,7 +103,7 @@ function Tasks({ token }) {
             
             {task.key_results && task.key_results.length > 0 && (
               <div className="kr-list">
-                <h4 style={{ marginBottom: '10px', color: '#666' }}>مرتبط با نتایج کلیدی:</h4>
+                <h4 style={{ marginBottom: '10px', color: '#666' }}>مرتبط با شاخص‌های کلیدی:</h4>
                 {task.key_results.map(kr => (
                   <div key={kr.id} className="kr-item">
                     <div className="kr-title">{kr.title}</div>
@@ -148,10 +148,10 @@ function Tasks({ token }) {
               </div>
 
               <div className="form-group">
-                <label>نتایج کلیدی مرتبط (حداقل یکی)</label>
+                <label>شاخص‌های کلیدی مرتبط (حداقل یکی)</label>
                 <div style={{ maxHeight: '200px', overflowY: 'auto', border: '1px solid #e0e0e0', borderRadius: '6px', padding: '10px' }}>
                   {keyResults.length === 0 ? (
-                    <p style={{ color: '#999', textAlign: 'center' }}>ابتدا نتایج کلیدی ایجاد کنید</p>
+                    <p style={{ color: '#999', textAlign: 'center' }}>ابتدا شاخص‌های کلیدی ایجاد کنید</p>
                   ) : (
                     keyResults.map(kr => (
                       <label key={kr.id} style={{ display: 'block', padding: '8px', cursor: 'pointer' }}>

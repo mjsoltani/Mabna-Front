@@ -150,7 +150,7 @@ function ModernDashboard({ token, onObjectiveClick, onTaskClick }) {
               <Activity className="icon" />
             </div>
             <div className="metric-content">
-              <p className="metric-label">نتایج کلیدی</p>
+              <p className="metric-label">شاخص‌های کلیدی</p>
               <h3 className="metric-value">{stats.total_key_results || 0}</h3>
               <p className="metric-change neutral">
                 <span>در حال پیگیری</span>

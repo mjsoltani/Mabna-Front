@@ -9,16 +9,22 @@ import persian from 'react-date-object/calendars/persian';
 import persian_fa from 'react-date-object/locales/persian_fa';
 import TasksKanban from './TasksKanban';
 import { CheckSquare } from 'lucide-react';
+import LabelSelector from './ui/label-selector';
+import LabelFilter from './ui/label-filter';
+import TaskLabels from './ui/task-labels';
 
 function TasksV2({ token, user, focusTaskId }) {
   const [users, setUsers] = useState([]);
   const [keyResults, setKeyResults] = useState([]);
+  const [labels, setLabels] = useState([]);
   const [loading, setLoading] = useState(true);
   
   // فیلترهای جدید
   const [activeFilter, setActiveFilter] = useState('all'); // all, my_tasks, user_specific
   const [selectedUserId, setSelectedUserId] = useState('');
   const [approvalFilter, setApprovalFilter] = useState('all'); // all, approved, not_approved
+  const [labelFilter, setLabelFilter] = useState([]); // فیلتر labels
+  const [labelOperator, setLabelOperator] = useState('OR'); // AND یا OR
   const [taskCounts, setTaskCounts] = useState({
     all: 0,
     my_tasks: 0,
@@ -42,6 +48,7 @@ function TasksV2({ token, user, focusTaskId }) {
     description: '',
     assignee_id: '',
     key_result_ids: [],
+    label_ids: [], // اضافه شده
     status: 'todo',
     type: 'routine',
     subtasks: [],
@@ -56,6 +63,7 @@ function TasksV2({ token, user, focusTaskId }) {
     description: '',
     assignee_id: '',
     key_result_ids: [],
+    label_ids: [], // اضافه شده
     status: 'todo',
     type: 'routine',
     due_date: ''
@@ -70,7 +78,7 @@ function TasksV2({ token, user, focusTaskId }) {
   // رفرش کردن تعداد تسک‌ها وقتی فیلترها تغییر می‌کنند
   useEffect(() => {
     fetchTaskCounts();
-  }, [activeFilter, selectedUserId, approvalFilter]);
+  }, [activeFilter, selectedUserId, approvalFilter, labelFilter, labelOperator]);
 
   const fetchTaskCounts = async () => {
     try {
@@ -129,21 +137,56 @@ function TasksV2({ token, user, focusTaskId }) {
 
   const fetchData = async () => {
     try {
-      const [usersRes, krsRes] = await Promise.all([
+      const [usersRes, krsRes, labelsRes] = await Promise.all([
         fetch(`${API_BASE_URL}/api/users/list`, {
           headers: { 'Authorization': `Bearer ${token}` }
         }),
         fetch(`${API_BASE_URL}/api/keyresults`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }),
+        fetch(`${API_BASE_URL}/api/labels`, {
           headers: { 'Authorization': `Bearer ${token}` }
         })
       ]);
 
       if (usersRes.ok) setUsers(await usersRes.json());
       if (krsRes.ok) setKeyResults(await krsRes.json());
+      if (labelsRes.ok) {
+        const labelsData = await labelsRes.json();
+        setLabels(labelsData.labels || labelsData);
+      }
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // تابع ایجاد label جدید
+  const createLabel = async (labelData) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/labels`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(labelData)
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        // اضافه کردن label جدید به لیست
+        setLabels(prev => [...prev, result.label]);
+        return result.label;
+      } else {
+        const error = await response.json();
+        throw new Error(error.message || 'خطا در ایجاد برچسب');
+      }
+    } catch (error) {
+      console.error('Error creating label:', error);
+      alert('خطا در ایجاد برچسب: ' + error.message);
+      throw error;
     }
   };
 
@@ -161,7 +204,7 @@ function TasksV2({ token, user, focusTaskId }) {
       if (response.ok) {
         setRefreshTrigger(prev => prev + 1);
         setShowModal(false);
-        setFormData({ title: '', description: '', assignee_id: '', key_result_ids: [], status: 'todo', type: 'routine', subtasks: [], due_date: '' });
+        setFormData({ title: '', description: '', assignee_id: '', key_result_ids: [], label_ids: [], status: 'todo', type: 'routine', subtasks: [], due_date: '' });
         setNewSubtaskTitle('');
       }
     } catch (error) {
@@ -184,7 +227,7 @@ function TasksV2({ token, user, focusTaskId }) {
         setRefreshTrigger(prev => prev + 1);
         setShowEditModal(false);
         setSelectedTask(null);
-        setEditFormData({ title: '', description: '', assignee_id: '', key_result_ids: [], status: 'todo', type: 'routine', due_date: '' });
+        setEditFormData({ title: '', description: '', assignee_id: '', key_result_ids: [], label_ids: [], status: 'todo', type: 'routine', due_date: '' });
         setEditDueDateValue(null);
       }
     } catch (error) {
@@ -515,6 +558,12 @@ function TasksV2({ token, user, focusTaskId }) {
       params.append('approved', 'false');
     }
     
+    // فیلتر labels
+    if (labelFilter.length > 0) {
+      params.append('labels', labelFilter.join(','));
+      params.append('label_operator', labelOperator);
+    }
+    
     return params.toString();
   };
 
@@ -540,6 +589,15 @@ function TasksV2({ token, user, focusTaskId }) {
 
   const renderFilters = () => (
     <div className="filters-section mb-6">
+      {/* فیلتر Labels */}
+      <LabelFilter
+        labels={labels}
+        selectedLabels={labelFilter}
+        onFilterChange={setLabelFilter}
+        operator={labelOperator}
+        onOperatorChange={setLabelOperator}
+      />
+      
       {/* تب‌های اصلی */}
       <div className="filter-tabs">
         <button
@@ -662,7 +720,7 @@ function TasksV2({ token, user, focusTaskId }) {
           </div>
 
           <div className="form-group">
-            <label>نتایج کلیدی (اختیاری)</label>
+            <label>شاخص‌های کلیدی (اختیاری)</label>
             <select
               multiple
               value={formData.key_result_ids}
@@ -675,6 +733,16 @@ function TasksV2({ token, user, focusTaskId }) {
                 <option key={kr.id} value={kr.id}>{kr.title}</option>
               ))}
             </select>
+          </div>
+
+          {/* Labels Selector */}
+          <div className="form-group">
+            <LabelSelector
+              selectedLabels={formData.label_ids}
+              onLabelsChange={(labelIds) => setFormData({ ...formData, label_ids: labelIds })}
+              availableLabels={labels}
+              onCreateLabel={createLabel}
+            />
           </div>
 
           <div className="form-group">
@@ -823,7 +891,7 @@ function TasksV2({ token, user, focusTaskId }) {
           </div>
 
           <div className="form-group">
-            <label>نتایج کلیدی (اختیاری)</label>
+            <label>شاخص‌های کلیدی (اختیاری)</label>
             <select
               multiple
               value={editFormData.key_result_ids}
@@ -836,6 +904,16 @@ function TasksV2({ token, user, focusTaskId }) {
                 <option key={kr.id} value={kr.id}>{kr.title}</option>
               ))}
             </select>
+          </div>
+
+          {/* Labels Selector */}
+          <div className="form-group">
+            <LabelSelector
+              selectedLabels={editFormData.label_ids}
+              onLabelsChange={(labelIds) => setEditFormData({ ...editFormData, label_ids: labelIds })}
+              availableLabels={labels}
+              onCreateLabel={createLabel}
+            />
           </div>
 
           <div className="form-group">
@@ -1133,6 +1211,7 @@ function TasksV2({ token, user, focusTaskId }) {
                     description: selectedTask.description || '',
                     assignee_id: selectedTask.assignee?.user_id || '',
                     key_result_ids: selectedTask.key_results?.map(kr => kr.id) || [],
+                    label_ids: selectedTask.labels?.map(label => label.id) || [],
                     status: selectedTask.status,
                     type: selectedTask.type || 'routine',
                     due_date: selectedTask.due_date || ''

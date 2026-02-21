@@ -3,7 +3,7 @@ import { ActivityCard } from "@/components/ui/activity-card";
 import { useState } from "react";
 
 const INITIAL_METRICS = [
-  { label: "نتایج کلیدی", value: "5", trend: 85, unit: "عدد" },
+  { label: "شاخص‌های کلیدی", value: "5", trend: 85, unit: "عدد" },
   { label: "تکمیل شده", value: "3", trend: 60, unit: "عدد" },
   { label: "پیشرفت", value: "75", trend: 75, unit: "%" },
 ];

@@ -1,0 +1,133 @@
+/* Task Labels Display */
+.task-labels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+.task-labels-small {
+  gap: 3px;
+}
+
+.task-labels-medium {
+  gap: 6px;
+}
+
+.task-labels-large {
+  gap: 8px;
+}
+
+.task-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: all 0.2s;
+}
+
+.task-labels-medium .task-label {
+  padding: 4px 10px;
+  font-size: 11px;
+  border-radius: 14px;
+}
+
+.task-labels-large .task-label {
+  padding: 6px 12px;
+  font-size: 12px;
+  border-radius: 16px;
+  max-width: 150px;
+}
+
+.task-label:hover {
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.remove-label-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-right: 2px;
+}
+
+.remove-label-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+.remaining-labels {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 6px;
+  background: #e5e7eb;
+  color: #6b7280;
+  border-radius: 10px;
+  font-size: 9px;
+  font-weight: 600;
+  min-width: 20px;
+  height: 20px;
+}
+
+.task-labels-medium .remaining-labels {
+  padding: 4px 8px;
+  font-size: 10px;
+  height: 22px;
+  border-radius: 11px;
+}
+
+.task-labels-large .remaining-labels {
+  padding: 6px 10px;
+  font-size: 11px;
+  height: 24px;
+  border-radius: 12px;
+}
+
+/* Animation for new labels */
+@keyframes labelAppear {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.task-label {
+  animation: labelAppear 0.2s ease-out;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .task-label {
+    max-width: 80px;
+    font-size: 9px;
+  }
+  
+  .task-labels-medium .task-label {
+    max-width: 100px;
+    font-size: 10px;
+  }
+  
+  .task-labels-large .task-label {
+    max-width: 120px;
+    font-size: 11px;
+  }
+}

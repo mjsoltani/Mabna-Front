@@ -10,6 +10,10 @@ import Teams from './Teams';
 import RecurringPatterns from './RecurringPatterns';
 import Profile from './Profile';
 import Calendar from './Calendar';
+import Users from './Users';
+import TeamsList from './TeamsList';
+import TeamDetail from './TeamDetail';
+import Messages from './Messages';
 import API_BASE_URL from '../config';
 import { Sidebar, SidebarBody, SidebarLink } from '@/components/ui/sidebar';
 import { DashboardNavbar } from '@/components/ui/dashboard-navbar';
@@ -17,13 +21,14 @@ import {
   LayoutDashboard, 
   Target, 
   BarChart3, 
-  Users, 
+  Users as UsersIcon, 
   CheckSquare, 
   RefreshCw, 
   UserCircle, 
   Mail, 
   LogOut,
-  Calendar as CalendarIcon
+  Calendar as CalendarIcon,
+  Shield
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -34,10 +39,25 @@ function Dashboard({ user, token, onLogout }) {
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [selectedTeamId, setSelectedTeamId] = useState(null);
+  const [organization, setOrganization] = useState(null);
 
   useEffect(() => {
     fetchNotifications();
+    fetchOrganization();
   }, []);
+
+  const fetchOrganization = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/organizations/default`);
+      if (response.ok) {
+        const data = await response.json();
+        setOrganization(data);
+      }
+    } catch (error) {
+      console.error('Error fetching organization:', error);
+    }
+  };
 
   const fetchNotifications = async () => {
     try {
@@ -107,7 +127,7 @@ function Dashboard({ user, token, onLogout }) {
       tab: 'objectives',
     },
     {
-      label: 'نتایج کلیدی',
+      label: 'شاخص‌های کلیدی',
       href: '#',
       icon: <BarChart3 className="text-neutral-700 h-5 w-5 flex-shrink-0" />,
       tab: 'keyresults',
@@ -115,8 +135,8 @@ function Dashboard({ user, token, onLogout }) {
     {
       label: 'تیم‌ها',
       href: '#',
-      icon: <Users className="text-neutral-700 h-5 w-5 flex-shrink-0" />,
-      tab: 'teams',
+      icon: <UsersIcon className="text-neutral-700 h-5 w-5 flex-shrink-0" />,
+      tab: 'teamslist',
     },
     {
       label: 'وظایف',
@@ -138,6 +158,23 @@ function Dashboard({ user, token, onLogout }) {
     },
   ];
 
+  // فقط برای admin و super_admin منوهای مدیریتی را اضافه کن
+  if (user && (user.role === 'admin' || user.role === 'super_admin')) {
+    links.push({
+      label: 'مدیریت کاربران',
+      href: '#',
+      icon: <Shield className="text-neutral-700 h-5 w-5 flex-shrink-0" />,
+      tab: 'users',
+    });
+    
+    links.push({
+      label: 'مدیریت سازمان',
+      href: '#',
+      icon: <BarChart3 className="text-neutral-700 h-5 w-5 flex-shrink-0" />,
+      tab: 'admin',
+    });
+  }
+
   // فقط برای admin ها منوی دعوت کاربران را اضافه کن
   if (user && user.role === 'admin') {
     links.push({
@@ -147,6 +184,16 @@ function Dashboard({ user, token, onLogout }) {
       tab: 'invitations',
     });
   }
+
+  const handleTeamClick = (teamId) => {
+    setSelectedTeamId(teamId);
+    setActiveTab('teamdetail');
+  };
+
+  const handleBackToTeams = () => {
+    setSelectedTeamId(null);
+    setActiveTab('teamslist');
+  };
 
   return (
     <div className={cn(
@@ -184,7 +231,7 @@ function Dashboard({ user, token, onLogout }) {
                   {user.full_name}
                 </span>
                 <span className="text-xs text-neutral-500">
-                  {user.team?.name || user.organization?.name || '-'}
+                  {organization?.name || user.organization?.name || 'افاق سرام'}
                 </span>
               </motion.div>
             </div>
@@ -227,10 +274,7 @@ function Dashboard({ user, token, onLogout }) {
         
         <div className="p-2 md:p-10 bg-white flex flex-col gap-2 flex-1 w-full h-full overflow-auto">
           <div className="flex-1">
-            {activeTab === 'dashboard' && user && user.role === 'admin' && (
-              <AdminDashboard token={token} user={user} />
-            )}
-            {activeTab === 'dashboard' && user && user.role !== 'admin' && (
+            {activeTab === 'dashboard' && (
               <ModernDashboard 
                 token={token} 
                 onObjectiveClick={(objectiveId) => {
@@ -253,25 +297,41 @@ function Dashboard({ user, token, onLogout }) {
               />
             )}
             {activeTab === 'teams' && <Teams token={token} user={user} />}
+            {activeTab === 'teamslist' && <TeamsList token={token} onTeamClick={handleTeamClick} />}
+            {activeTab === 'teamdetail' && selectedTeamId && (
+              <TeamDetail 
+                token={token} 
+                teamId={selectedTeamId} 
+                onBack={handleBackToTeams}
+                currentUser={user}
+              />
+            )}
+            {activeTab === 'users' && <Users token={token} currentUser={user} />}
+            {activeTab === 'admin' && <AdminDashboard token={token} user={user} />}
             {activeTab === 'invitations' && <Invitations token={token} />}
           </div>
         </div>
       </div>
+
+      {/* کامپوننت مکاتبات - همیشه نمایش داده می‌شود */}
+      <Messages token={token} user={user} />
     </div>
   );
 }
 
 const Logo = () => {
   return (
-    <div className="font-normal flex space-x-2 items-center text-sm text-black py-1 relative z-20">
-      <div className="h-5 w-6 bg-primary rounded-br-lg rounded-tr-sm rounded-tl-lg rounded-bl-sm flex-shrink-0" />
-      <motion.span
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="font-medium text-black dark:text-white whitespace-pre mr-2"
-      >
-        مبنا
-      </motion.span>
+    <div className="font-normal flex flex-col space-y-2 items-start text-sm text-black py-1 relative z-20">
+      <div className="flex items-center space-x-2">
+        <div className="h-5 w-6 bg-primary rounded-br-lg rounded-tr-sm rounded-tl-lg rounded-bl-sm flex-shrink-0" />
+        <motion.span
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="font-medium text-black dark:text-white whitespace-pre mr-2"
+        >
+          مبنا
+        </motion.span>
+      </div>
     </div>
   );
 };

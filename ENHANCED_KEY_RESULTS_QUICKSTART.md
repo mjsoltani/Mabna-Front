@@ -185,15 +185,122 @@ const response = await fetch(`${API_BASE_URL}/api/keyresults/${krId}/attachments
 
 ### رنگ‌های Progress Bar
 
-- سبز (>= 70%): روی مسیر
-- زرد (40-69%): در خطر
-- قرمز (< 40%): عقب افتاده
+- سبز (>= 70%): روی مسیر ✅
+- زرد (40-69%): در خطر ⚠️
+- قرمز (< 40%): عقب افتاده ❌
 
 ### Badge Colors
 
-- Owner: آبی
-- Due Date: زرد (عادی) / قرمز (کمتر از 7 روز)
-- Labels: بنفش
+- Owner: آبی (#dbeafe)
+- Due Date: زرد (#fef3c7) / قرمز (#fee2e2 برای کمتر از 7 روز)
+- Labels: بنفش (#e0e7ff)
+
+### Customization
+
+می‌تونید استایل‌ها رو override کنید:
+
+```css
+/* در فایل CSS خودتون */
+.enhanced-kr-card {
+  border-radius: 12px; /* تغییر گوشه‌ها */
+}
+
+.kr-progress-bar-fill {
+  background: linear-gradient(90deg, #your-color-1, #your-color-2);
+}
+```
+
+## سناریوهای رایج
+
+### سناریو 1: ایجاد KR برای تیم فروش
+
+```jsx
+// مثال واقعی با داده‌های نمونه
+const salesKR = {
+  title: 'افزایش فروش ماهانه',
+  description: 'افزایش فروش محصولات دیجیتال در بازار B2B',
+  initial_value: 50000000,
+  current_value: 65000000,
+  target_value: 100000000,
+  unit: 'currency',
+  owner_id: 'sales-manager-id',
+  due_date: '2025-03-31',
+  labels: ['فروش', 'Q1', 'اولویت بالا', 'B2B']
+};
+
+// ارسال به API
+const response = await fetch(`${API_BASE_URL}/api/objectives/${objId}/keyresults`, {
+  method: 'POST',
+  headers: {
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify(salesKR)
+});
+```
+
+### سناریو 2: ترک پروژه با Progress Updates
+
+```jsx
+// Step 1: ایجاد KR برای پروژه
+const projectKR = {
+  title: 'تکمیل فیچر Authentication',
+  target_value: 100,
+  unit: 'percent',
+  owner_id: 'dev-lead-id',
+  due_date: '2025-04-15',
+  labels: ['Development', 'Sprint 3']
+};
+
+// Step 2: ثبت پیشرفت هفتگی
+// هفته 1
+await addProgress(krId, { value: 25, note: 'طراحی UI تکمیل شد' });
+
+// هفته 2
+await addProgress(krId, { value: 50, note: 'Backend API آماده شد' });
+
+// هفته 3
+await addProgress(krId, { value: 75, note: 'Integration تست شد' });
+
+// هفته 4
+await addProgress(krId, { value: 100, note: 'فیچر به production رفت' });
+```
+
+### سناریو 3: مدیریت KR با فایل‌های متعدد
+
+```jsx
+// آپلود مستندات و فایل‌های مرتبط
+const files = [
+  { name: 'requirements.pdf', type: 'مستندات' },
+  { name: 'design-mockup.png', type: 'طراحی' },
+  { name: 'test-results.xlsx', type: 'گزارش' }
+];
+
+for (const file of files) {
+  const formData = new FormData();
+  formData.append('file', file);
+  
+  await fetch(`${API_BASE_URL}/api/keyresults/${krId}/attachments`, {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${token}` },
+    body: formData
+  });
+}
+```
+
+## سوالات متداول (FAQ)
+
+**س: چطور می‌تونم KR رو کپی کنم؟**
+ج: فعلاً باید دستی ایجاد کنید، ولی می‌تونید از همون فرم با مقادیر قبلی استفاده کنید.
+
+**س: آیا می‌تونم چند مسئول تعیین کنم؟**
+ج: خیر، فقط یک owner مجاز هست. برای کار تیمی از labels استفاده کنید.
+
+**س: چطور می‌تونم KRهای expired رو ببینم؟**
+ج: KRهایی که due_date گذشته باشه با badge قرمز نمایش داده میشن.
+
+**س: آیا می‌تونم Progress Update رو ویرایش کنم؟**
+ج: خیر، برای حفظ تاریخچه دقیق، فقط می‌تونید update جدید اضافه کنید.
 
 ## نکات مهم
 
@@ -202,6 +309,58 @@ const response = await fetch(`${API_BASE_URL}/api/keyresults/${krId}/attachments
 3. فایل‌ها محدود به 10MB هستند
 4. برچسب‌ها با Enter اضافه می‌شوند
 5. واحد پیش‌فرض "عدد" است
+
+## Best Practices
+
+### 1. نام‌گذاری KR
+```javascript
+// ❌ بد
+title: "KR1"
+
+// ✅ خوب
+title: "افزایش نرخ تبدیل از 2% به 5%"
+```
+
+### 2. استفاده از واحدها
+```javascript
+// برای اهداف مالی
+unit: 'currency'
+
+// برای درصدها
+unit: 'percent'
+
+// برای تعداد
+unit: 'number'
+```
+
+### 3. تنظیم Due Date
+```javascript
+// همیشه تاریخ واقع‌بینانه تعیین کنید
+// و 1-2 هفته buffer در نظر بگیرید
+const dueDate = new Date();
+dueDate.setDate(dueDate.getDate() + 90); // 3 ماه
+```
+
+### 4. استفاده از Labels
+```javascript
+// از labels برای دسته‌بندی استفاده کنید
+labels: [
+  'Q1',              // دوره زمانی
+  'فروش',           // دپارتمان
+  'اولویت بالا',    // اولویت
+  'B2B'              // نوع
+]
+```
+
+### 5. ثبت Progress منظم
+```javascript
+// هر هفته یا هر 2 هفته progress ثبت کنید
+// حتی اگر تغییری نداشته باشید
+await addProgress(krId, {
+  value: currentValue,
+  note: 'بدون تغییر - در حال کار روی فاز بعدی'
+});
+```
 
 ## Troubleshooting
 

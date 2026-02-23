@@ -29,6 +29,23 @@
 #### کامپوننت صفحه:
 - `src/components/ObjectivesEnhanced.jsx` - نسخه جدید صفحه اهداف با قابلیت‌های Enhanced
 
+## معماری کامپوننت‌ها
+
+```
+ObjectivesEnhanced
+├── EnhancedKeyResultCard
+│   ├── KeyResultProgressModal
+│   └── KeyResultAttachments
+└── EnhancedKeyResultForm
+```
+
+### جریان داده (Data Flow)
+1. ObjectivesEnhanced → fetch objectives از API
+2. هر objective شامل array از key_results
+3. EnhancedKeyResultCard → نمایش هر KR
+4. کلیک روی "ثبت پیشرفت" → KeyResultProgressModal
+5. کلیک روی "فایل‌ها" → KeyResultAttachments
+
 ## قابلیت‌های پیاده‌سازی شده
 
 ### ✅ 1. Description (توضیحات)
@@ -203,6 +220,69 @@ import ObjectivesEnhanced from './ObjectivesEnhanced';
 - فرمت تاریخ باید YYYY-MM-DD باشد
 - DatePicker به درستی تنظیم شده باشد
 
+## Performance Tips
+
+### بهینه‌سازی‌های پیاده‌سازی شده:
+- ✅ Lazy loading برای مودال‌ها
+- ✅ Conditional rendering برای فیلدهای اختیاری
+- ✅ Debounce برای input برچسب‌ها (300ms)
+- ✅ Memoization برای محاسبات progress
+
+### توصیه‌های بهینه‌سازی:
+```jsx
+// استفاده از React.memo برای کامپوننت‌های سنگین
+const EnhancedKeyResultCard = React.memo(({ keyResult, ... }) => {
+  // ...
+}, (prevProps, nextProps) => {
+  return prevProps.keyResult.id === nextProps.keyResult.id &&
+         prevProps.keyResult.current_value === nextProps.keyResult.current_value;
+});
+
+// Lazy loading برای فایل‌های بزرگ
+const KeyResultAttachments = lazy(() => import('./KeyResultAttachments'));
+```
+
+### حد مجاز و محدودیت‌ها:
+- حداکثر سایز فایل: 10MB
+- حداکثر تعداد برچسب‌ها: نامحدود (توصیه: کمتر از 10)
+- حداکثر طول عنوان: 255 کاراکتر
+- حداکثر طول توضیحات: نامحدود (توصیه: کمتر از 1000 کاراکتر)
+
+## سوالات متداول (FAQ)
+
+**س: آیا می‌تونم بعد از ایجاد، واحد اندازه‌گیری رو تغییر بدم؟**
+ج: بله، از طریق دکمه ویرایش می‌تونید همه فیلدها رو تغییر بدید. فقط دقت کنید که تغییر واحد ممکنه روی نمایش مقادیر تأثیر بذاره.
+
+**س: چند فایل می‌تونم آپلود کنم؟**
+ج: محدودیتی برای تعداد نیست، فقط هر فایل باید کمتر از 10MB باشه.
+
+**س: آیا Progress Updates قابل حذف هستن؟**
+ج: خیر، برای حفظ یکپارچگی تاریخچه، Progress Updates immutable هستن و نمی‌شه ویرایش یا حذفشون کرد.
+
+**س: چطور می‌تونم برچسب‌ها رو حذف کنم؟**
+ج: در فرم ویرایش، روی × کنار هر برچسب کلیک کنید. یا می‌تونید همه رو پاک کنید و فرم رو ذخیره کنید.
+
+**س: اگر مسئول از سازمان حذف بشه چی میشه؟**
+ج: Key Result همچنان نگه داشته میشه ولی owner به null تبدیل میشه. می‌تونید مسئول جدید تعیین کنید.
+
+**س: آیا می‌تونم current_value رو بیشتر از target_value تنظیم کنم؟**
+ج: خیر، validation جلوگیری می‌کنه. اگر هدف رو رد کردید، target_value رو افزایش بدید.
+
+## مقایسه نسخه قدیم و جدید
+
+| ویژگی | نسخه قدیم | نسخه Enhanced |
+|-------|-----------|---------------|
+| فیلدهای الزامی | title, initial_value, target_value | فقط title, target_value |
+| توضیحات | ❌ | ✅ |
+| واحد اندازه‌گیری | ❌ | ✅ (7 نوع) |
+| مسئول | ❌ | ✅ |
+| تاریخ سررسید | ❌ | ✅ با هشدار |
+| برچسب‌ها | ❌ | ✅ |
+| تاریخچه پیشرفت | ❌ | ✅ با timeline |
+| فایل‌های پیوست | ❌ | ✅ با drag & drop |
+| Progress Bar | ساده | رنگی و پیشرفته |
+| UI/UX | پایه | مدرن با badges |
+
 ## بهبودهای آینده
 
 - [ ] Autocomplete برای برچسب‌ها از برچسب‌های موجود
@@ -211,6 +291,8 @@ import ObjectivesEnhanced from './ObjectivesEnhanced';
 - [ ] فیلتر و جستجو در Key Results
 - [ ] Export گزارش به PDF
 - [ ] نوتیفیکیشن برای due date نزدیک
+- [ ] Bulk edit برای چندین KR
+- [ ] Template برای KRهای تکراری
 
 ## پشتیبانی
 

@@ -1035,3 +1035,82 @@
   background: rgba(16, 185, 129, 0.1);
   color: #34d399;
 }
+
+/* Recurring Pattern Styles */
+.recurring-section {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 2px solid #e5e7eb;
+}
+
+.recurring-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.recurring-toggle input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: #2563eb;
+}
+
+.recurring-options {
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.form-row {
+  display: grid;
+  gap: 12px;
+}
+
+.recurring-options .form-group {
+  margin-bottom: 12px;
+}
+
+.recurring-options .form-group:last-child {
+  margin-bottom: 0;
+}
+
+.recurring-options label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 6px;
+}
+
+.recurring-options select,
+.recurring-options input[type="number"] {
+  width: 100%;
+  padding: 10px 14px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.recurring-options select:focus,
+.recurring-options input[type="number"]:focus {
+  outline: none;
+  border-color: #2563eb;
+}
+
+.recurring-options small {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: #6b7280;
+}

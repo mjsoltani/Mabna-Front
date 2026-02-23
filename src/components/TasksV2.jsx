@@ -52,9 +52,17 @@ function TasksV2({ token, user, focusTaskId }) {
     status: 'todo',
     type: 'routine',
     subtasks: [],
-    due_date: ''
+    due_date: '',
+    // فیلدهای الگوی تکرار
+    is_recurring: false,
+    recurring_frequency: 'daily',
+    recurring_interval: 1,
+    recurring_day_of_week: 1,
+    recurring_day_of_month: 1,
+    recurring_end_date: ''
   });
   const [dueDateValue, setDueDateValue] = useState(null);
+  const [recurringEndDateValue, setRecurringEndDateValue] = useState(null);
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
   const [editingDescription, setEditingDescription] = useState(null);
   const [tempDescription, setTempDescription] = useState('');
@@ -66,9 +74,17 @@ function TasksV2({ token, user, focusTaskId }) {
     label_ids: [], // اضافه شده
     status: 'todo',
     type: 'routine',
-    due_date: ''
+    due_date: '',
+    // فیلدهای الگوی تکرار
+    is_recurring: false,
+    recurring_frequency: 'daily',
+    recurring_interval: 1,
+    recurring_day_of_week: 1,
+    recurring_day_of_month: 1,
+    recurring_end_date: ''
   });
   const [editDueDateValue, setEditDueDateValue] = useState(null);
+  const [editRecurringEndDateValue, setEditRecurringEndDateValue] = useState(null);
 
   useEffect(() => {
     fetchData();
@@ -193,45 +209,153 @@ function TasksV2({ token, user, focusTaskId }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(`${API_BASE_URL}/api/tasks`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
-      });
-      if (response.ok) {
-        setRefreshTrigger(prev => prev + 1);
-        setShowModal(false);
-        setFormData({ title: '', description: '', assignee_id: '', key_result_ids: [], label_ids: [], status: 'todo', type: 'routine', subtasks: [], due_date: '' });
-        setNewSubtaskTitle('');
+      // اگر تسک تکرارشونده است، ابتدا الگوی تکرار بسازیم
+      if (formData.is_recurring) {
+        const patternPayload = {
+          title: formData.title,
+          description: formData.description || '',
+          assignee_id: formData.assignee_id,
+          frequency: formData.recurring_frequency,
+          interval: formData.recurring_interval,
+          start_date: new Date().toISOString().split('T')[0],
+          end_date: formData.recurring_end_date || null,
+          subtask_templates: formData.subtasks
+        };
+
+        // اضافه کردن فیلدهای مخصوص هر نوع تکرار
+        if (formData.recurring_frequency === 'weekly') {
+          patternPayload.day_of_week = formData.recurring_day_of_week;
+        } else if (formData.recurring_frequency === 'monthly') {
+          patternPayload.day_of_month = formData.recurring_day_of_month;
+        }
+
+        const patternResponse = await fetch(`${API_BASE_URL}/api/recurring-patterns`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(patternPayload)
+        });
+
+        if (patternResponse.ok) {
+          alert('✅ الگوی تکرار با موفقیت ساخته شد و تسک اول ایجاد خواهد شد');
+          setRefreshTrigger(prev => prev + 1);
+          setShowModal(false);
+          setFormData({ 
+            title: '', description: '', assignee_id: '', key_result_ids: [], label_ids: [], 
+            status: 'todo', type: 'routine', subtasks: [], due_date: '',
+            is_recurring: false, recurring_frequency: 'daily', recurring_interval: 1,
+            recurring_day_of_week: 1, recurring_day_of_month: 1, recurring_end_date: ''
+          });
+          setNewSubtaskTitle('');
+          setRecurringEndDateValue(null);
+        } else {
+          alert('❌ خطا در ساخت الگوی تکرار');
+        }
+      } else {
+        // تسک عادی
+        const response = await fetch(`${API_BASE_URL}/api/tasks`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(formData)
+        });
+        if (response.ok) {
+          setRefreshTrigger(prev => prev + 1);
+          setShowModal(false);
+          setFormData({ 
+            title: '', description: '', assignee_id: '', key_result_ids: [], label_ids: [], 
+            status: 'todo', type: 'routine', subtasks: [], due_date: '',
+            is_recurring: false, recurring_frequency: 'daily', recurring_interval: 1,
+            recurring_day_of_week: 1, recurring_day_of_month: 1, recurring_end_date: ''
+          });
+          setNewSubtaskTitle('');
+        }
       }
     } catch (error) {
       console.error('Error creating task:', error);
+      alert('❌ خطا در ایجاد وظیفه');
     }
   };
 
   const handleEditSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(`${API_BASE_URL}/api/tasks/${selectedTask.id}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(editFormData)
-      });
-      if (response.ok) {
-        setRefreshTrigger(prev => prev + 1);
-        setShowEditModal(false);
-        setSelectedTask(null);
-        setEditFormData({ title: '', description: '', assignee_id: '', key_result_ids: [], label_ids: [], status: 'todo', type: 'routine', due_date: '' });
-        setEditDueDateValue(null);
+      // اگر تسک تکرارشونده است، ابتدا الگوی تکرار بسازیم
+      if (editFormData.is_recurring) {
+        const patternPayload = {
+          title: editFormData.title,
+          description: editFormData.description || '',
+          assignee_id: editFormData.assignee_id,
+          frequency: editFormData.recurring_frequency,
+          interval: editFormData.recurring_interval,
+          start_date: new Date().toISOString().split('T')[0],
+          end_date: editFormData.recurring_end_date || null,
+          subtask_templates: []
+        };
+
+        // اضافه کردن فیلدهای مخصوص هر نوع تکرار
+        if (editFormData.recurring_frequency === 'weekly') {
+          patternPayload.day_of_week = editFormData.recurring_day_of_week;
+        } else if (editFormData.recurring_frequency === 'monthly') {
+          patternPayload.day_of_month = editFormData.recurring_day_of_month;
+        }
+
+        const patternResponse = await fetch(`${API_BASE_URL}/api/recurring-patterns`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(patternPayload)
+        });
+
+        if (patternResponse.ok) {
+          alert('✅ الگوی تکرار با موفقیت ساخته شد');
+          setRefreshTrigger(prev => prev + 1);
+          setShowEditModal(false);
+          setSelectedTask(null);
+          setEditFormData({ 
+            title: '', description: '', assignee_id: '', key_result_ids: [], label_ids: [], 
+            status: 'todo', type: 'routine', due_date: '',
+            is_recurring: false, recurring_frequency: 'daily', recurring_interval: 1,
+            recurring_day_of_week: 1, recurring_day_of_month: 1, recurring_end_date: ''
+          });
+          setEditDueDateValue(null);
+          setEditRecurringEndDateValue(null);
+        } else {
+          alert('❌ خطا در ساخت الگوی تکرار');
+        }
+      } else {
+        // آپدیت عادی تسک
+        const response = await fetch(`${API_BASE_URL}/api/tasks/${selectedTask.id}`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(editFormData)
+        });
+        if (response.ok) {
+          setRefreshTrigger(prev => prev + 1);
+          setShowEditModal(false);
+          setSelectedTask(null);
+          setEditFormData({ 
+            title: '', description: '', assignee_id: '', key_result_ids: [], label_ids: [], 
+            status: 'todo', type: 'routine', due_date: '',
+            is_recurring: false, recurring_frequency: 'daily', recurring_interval: 1,
+            recurring_day_of_week: 1, recurring_day_of_month: 1, recurring_end_date: ''
+          });
+          setEditDueDateValue(null);
+          setEditRecurringEndDateValue(null);
+        }
       }
     } catch (error) {
       console.error('Error updating task:', error);
+      alert('❌ خطا در ویرایش وظیفه');
     }
   };
 
@@ -812,6 +936,128 @@ function TasksV2({ token, user, focusTaskId }) {
             )}
           </div>
 
+          {/* الگوی تکرار */}
+          <div className="form-group recurring-section">
+            <div className="recurring-toggle">
+              <input
+                type="checkbox"
+                id="is_recurring"
+                checked={formData.is_recurring}
+                onChange={(e) => setFormData({ ...formData, is_recurring: e.target.checked })}
+              />
+              <label htmlFor="is_recurring" style={{ cursor: 'pointer', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                🔄 این وظیفه تکرارشونده است
+              </label>
+            </div>
+
+            {formData.is_recurring && (
+              <div className="recurring-options" style={{ marginTop: '16px', padding: '16px', background: '#f9fafb', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+                <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div className="form-group">
+                    <label>نوع تکرار</label>
+                    <select
+                      value={formData.recurring_frequency}
+                      onChange={(e) => setFormData({ ...formData, recurring_frequency: e.target.value })}
+                    >
+                      <option value="daily">روزانه</option>
+                      <option value="weekly">هفتگی</option>
+                      <option value="monthly">ماهانه</option>
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label>فاصله تکرار</label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={formData.recurring_interval}
+                      onChange={(e) => setFormData({ ...formData, recurring_interval: parseInt(e.target.value) || 1 })}
+                    />
+                    <small style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px', display: 'block' }}>
+                      {formData.recurring_frequency === 'daily' && 'هر چند روز یکبار'}
+                      {formData.recurring_frequency === 'weekly' && 'هر چند هفته یکبار'}
+                      {formData.recurring_frequency === 'monthly' && 'هر چند ماه یکبار'}
+                    </small>
+                  </div>
+                </div>
+
+                {formData.recurring_frequency === 'weekly' && (
+                  <div className="form-group">
+                    <label>روز هفته</label>
+                    <select
+                      value={formData.recurring_day_of_week}
+                      onChange={(e) => setFormData({ ...formData, recurring_day_of_week: parseInt(e.target.value) })}
+                    >
+                      <option value={0}>یکشنبه</option>
+                      <option value={1}>دوشنبه</option>
+                      <option value={2}>سه‌شنبه</option>
+                      <option value={3}>چهارشنبه</option>
+                      <option value={4}>پنج‌شنبه</option>
+                      <option value={5}>جمعه</option>
+                      <option value={6}>شنبه</option>
+                    </select>
+                  </div>
+                )}
+
+                {formData.recurring_frequency === 'monthly' && (
+                  <div className="form-group">
+                    <label>روز ماه</label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="31"
+                      value={formData.recurring_day_of_month}
+                      onChange={(e) => setFormData({ ...formData, recurring_day_of_month: parseInt(e.target.value) || 1 })}
+                    />
+                    <small style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px', display: 'block' }}>
+                      روز 1 تا 31
+                    </small>
+                  </div>
+                )}
+
+                <div className="form-group">
+                  <label>تاریخ پایان تکرار (اختیاری)</label>
+                  <DatePicker
+                    value={recurringEndDateValue}
+                    onChange={(date) => {
+                      setRecurringEndDateValue(date);
+                      if (date) {
+                        const d = date.toDate();
+                        const y = d.getFullYear();
+                        const m = String(d.getMonth() + 1).padStart(2, '0');
+                        const day = String(d.getDate()).padStart(2, '0');
+                        setFormData({ ...formData, recurring_end_date: `${y}-${m}-${day}` });
+                      } else {
+                        setFormData({ ...formData, recurring_end_date: '' });
+                      }
+                    }}
+                    calendar={persian}
+                    locale={persian_fa}
+                    placeholder="تاریخ پایان (خالی = تا ابد)"
+                    format="YYYY/MM/DD"
+                    style={{ width: '100%' }}
+                  />
+                  {recurringEndDateValue && (
+                    <button
+                      type="button"
+                      className="btn-clear-date"
+                      onClick={() => {
+                        setRecurringEndDateValue(null);
+                        setFormData({ ...formData, recurring_end_date: '' });
+                      }}
+                    >
+                      ✕ حذف تاریخ پایان
+                    </button>
+                  )}
+                </div>
+
+                <div style={{ padding: '12px', background: '#eff6ff', borderRadius: '6px', fontSize: '13px', color: '#1e40af', marginTop: '12px' }}>
+                  💡 با فعال کردن الگوی تکرار، یک الگو ساخته می‌شود که به صورت خودکار تسک‌های جدید ایجاد می‌کند
+                </div>
+              </div>
+            )}
+          </div>
+
           <div className="form-actions">
             <button type="submit" className="btn-primary">ایجاد</button>
             <button type="button" className="btn-secondary" onClick={() => setShowModal(false)}>
@@ -949,6 +1195,128 @@ function TasksV2({ token, user, focusTaskId }) {
               >
                 ✕ حذف سررسید
               </button>
+            )}
+          </div>
+
+          {/* الگوی تکرار */}
+          <div className="form-group recurring-section">
+            <div className="recurring-toggle">
+              <input
+                type="checkbox"
+                id="edit_is_recurring"
+                checked={editFormData.is_recurring}
+                onChange={(e) => setEditFormData({ ...editFormData, is_recurring: e.target.checked })}
+              />
+              <label htmlFor="edit_is_recurring" style={{ cursor: 'pointer', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                🔄 تبدیل به وظیفه تکرارشونده
+              </label>
+            </div>
+
+            {editFormData.is_recurring && (
+              <div className="recurring-options" style={{ marginTop: '16px', padding: '16px', background: '#f9fafb', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+                <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div className="form-group">
+                    <label>نوع تکرار</label>
+                    <select
+                      value={editFormData.recurring_frequency}
+                      onChange={(e) => setEditFormData({ ...editFormData, recurring_frequency: e.target.value })}
+                    >
+                      <option value="daily">روزانه</option>
+                      <option value="weekly">هفتگی</option>
+                      <option value="monthly">ماهانه</option>
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label>فاصله تکرار</label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={editFormData.recurring_interval}
+                      onChange={(e) => setEditFormData({ ...editFormData, recurring_interval: parseInt(e.target.value) || 1 })}
+                    />
+                    <small style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px', display: 'block' }}>
+                      {editFormData.recurring_frequency === 'daily' && 'هر چند روز یکبار'}
+                      {editFormData.recurring_frequency === 'weekly' && 'هر چند هفته یکبار'}
+                      {editFormData.recurring_frequency === 'monthly' && 'هر چند ماه یکبار'}
+                    </small>
+                  </div>
+                </div>
+
+                {editFormData.recurring_frequency === 'weekly' && (
+                  <div className="form-group">
+                    <label>روز هفته</label>
+                    <select
+                      value={editFormData.recurring_day_of_week}
+                      onChange={(e) => setEditFormData({ ...editFormData, recurring_day_of_week: parseInt(e.target.value) })}
+                    >
+                      <option value={0}>یکشنبه</option>
+                      <option value={1}>دوشنبه</option>
+                      <option value={2}>سه‌شنبه</option>
+                      <option value={3}>چهارشنبه</option>
+                      <option value={4}>پنج‌شنبه</option>
+                      <option value={5}>جمعه</option>
+                      <option value={6}>شنبه</option>
+                    </select>
+                  </div>
+                )}
+
+                {editFormData.recurring_frequency === 'monthly' && (
+                  <div className="form-group">
+                    <label>روز ماه</label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="31"
+                      value={editFormData.recurring_day_of_month}
+                      onChange={(e) => setEditFormData({ ...editFormData, recurring_day_of_month: parseInt(e.target.value) || 1 })}
+                    />
+                    <small style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px', display: 'block' }}>
+                      روز 1 تا 31
+                    </small>
+                  </div>
+                )}
+
+                <div className="form-group">
+                  <label>تاریخ پایان تکرار (اختیاری)</label>
+                  <DatePicker
+                    value={editRecurringEndDateValue}
+                    onChange={(date) => {
+                      setEditRecurringEndDateValue(date);
+                      if (date) {
+                        const d = date.toDate();
+                        const y = d.getFullYear();
+                        const m = String(d.getMonth() + 1).padStart(2, '0');
+                        const day = String(d.getDate()).padStart(2, '0');
+                        setEditFormData({ ...editFormData, recurring_end_date: `${y}-${m}-${day}` });
+                      } else {
+                        setEditFormData({ ...editFormData, recurring_end_date: '' });
+                      }
+                    }}
+                    calendar={persian}
+                    locale={persian_fa}
+                    placeholder="تاریخ پایان (خالی = تا ابد)"
+                    format="YYYY/MM/DD"
+                    style={{ width: '100%' }}
+                  />
+                  {editRecurringEndDateValue && (
+                    <button
+                      type="button"
+                      className="btn-clear-date"
+                      onClick={() => {
+                        setEditRecurringEndDateValue(null);
+                        setEditFormData({ ...editFormData, recurring_end_date: '' });
+                      }}
+                    >
+                      ✕ حذف تاریخ پایان
+                    </button>
+                  )}
+                </div>
+
+                <div style={{ padding: '12px', background: '#eff6ff', borderRadius: '6px', fontSize: '13px', color: '#1e40af', marginTop: '12px' }}>
+                  💡 با فعال کردن الگوی تکرار، یک الگو ساخته می‌شود که به صورت خودکار تسک‌های جدید ایجاد می‌کند
+                </div>
+              </div>
             )}
           </div>
 
@@ -1214,9 +1582,16 @@ function TasksV2({ token, user, focusTaskId }) {
                     label_ids: selectedTask.labels?.map(label => label.id) || [],
                     status: selectedTask.status,
                     type: selectedTask.type || 'routine',
-                    due_date: selectedTask.due_date || ''
+                    due_date: selectedTask.due_date || '',
+                    is_recurring: false,
+                    recurring_frequency: 'daily',
+                    recurring_interval: 1,
+                    recurring_day_of_week: 1,
+                    recurring_day_of_month: 1,
+                    recurring_end_date: ''
                   });
                   setEditDueDateValue(selectedTask.due_date ? new Date(selectedTask.due_date) : null);
+                  setEditRecurringEndDateValue(null);
                   setShowEditModal(true);
                 }}
               >

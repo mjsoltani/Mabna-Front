@@ -1,0 +1,269 @@
+Subject: Implementation Task - Enhanced Key Results Feature
+
+Priority: High
+Estimated Time: 2-3 days
+Backend Status: ✅ Complete & Deployed
+Frontend Status: ✅ IMPLEMENTED
+
+---
+
+IMPLEMENTATION COMPLETED:
+
+All 8 new optional fields have been successfully implemented in the frontend.
+See KEY_RESULTS_IMPLEMENTATION.md for complete documentation.
+
+---
+
+TASK OVERVIEW:
+
+Implement enhanced Key Results feature with 8 new optional fields. Backend APIs are ready and tested. Your task is to update the frontend to support these new capabilities.
+
+---
+
+WHAT'S NEW:
+
+The Key Results now support these additional OPTIONAL fields:
+1. description (string) - Detailed context
+2. current_value (float) - Current progress value
+3. unit (string) - Measurement type (percent, number, currency, etc.)
+4. owner_id (uuid) - Assigned team member
+5. due_date (date) - Deadline
+6. labels (array) - Tags for categorization
+7. Progress Updates - Historical tracking with notes
+8. Attachments - File uploads
+
+---
+
+BACKEND CHANGES:
+
+✅ Enhanced POST /api/objectives/:id/keyresults
+   - Now accepts all 8 new optional fields
+   - Only title and target_value remain required
+
+✅ Enhanced PUT /api/keyresults/:id
+   - All fields are optional in updates
+   - Returns updated_at timestamp
+
+✅ New POST /api/keyresults/:id/progress
+   - Add progress update with value and optional note
+   - Automatically updates current_value
+
+✅ New GET /api/keyresults/:id/progress
+   - Retrieve progress history
+
+✅ New POST /api/keyresults/:id/attachments
+   - Upload files (multipart/form-data)
+
+✅ New GET /api/keyresults/:id/attachments
+   - List all attachments
+
+✅ New DELETE /api/keyresults/attachments/:id
+   - Remove attachment
+
+---
+
+IMPLEMENTATION REQUIREMENTS:
+
+1. UPDATE CREATE/EDIT FORMS:
+   - Add optional fields to Key Result creation form
+   - Add optional fields to Key Result edit form
+   - All new fields should be clearly marked as optional
+   - Implement unit selector dropdown (percent, number, currency, hours, days)
+   - Implement owner/assignee selector (from team members)
+   - Implement date picker for due_date
+   - Implement label/tag input (similar to task labels)
+
+2. UPDATE KEY RESULT DISPLAY:
+   - Show description if present
+   - Display current_value with unit symbol
+   - Show owner avatar/name if assigned
+   - Display due date with visual indicator if approaching
+   - Show labels/tags as badges
+   - Add progress bar visualization (current_value / target_value)
+
+3. IMPLEMENT PROGRESS TRACKING:
+   - Create "Add Progress Update" modal/form
+   - Input: value (required), note (optional)
+   - Display progress history timeline
+   - Show who made each update and when
+   - Visual diff between updates
+
+4. IMPLEMENT ATTACHMENTS:
+   - Add file upload button/dropzone
+   - Display list of attachments with icons
+   - Show file name, size, uploader, date
+   - Implement download functionality
+   - Implement delete with confirmation
+
+5. UPDATE KEY RESULT CARD/LIST VIEW:
+   - Show progress percentage
+   - Display owner avatar
+   - Show due date badge
+   - Display label badges
+   - Add visual indicators for overdue items
+
+---
+
+API EXAMPLES:
+
+Create with all fields:
+POST /api/objectives/{id}/keyresults
+{
+  "title": "افزایش فروش",
+  "description": "افزایش فروش محصولات دیجیتال",
+  "initial_value": 0,
+  "current_value": 25,
+  "target_value": 100,
+  "unit": "percent",
+  "owner_id": "user-uuid",
+  "due_date": "2025-12-31",
+  "labels": ["Q1", "فروش", "اولویت بالا"]
+}
+
+Add progress:
+POST /api/keyresults/{id}/progress
+{
+  "value": 45.5,
+  "note": "پیشرفت خوبی داشتیم این هفته"
+}
+
+Upload attachment:
+POST /api/keyresults/{id}/attachments
+Content-Type: multipart/form-data
+Body: file={File}
+
+---
+
+UNIT TYPES (Suggested):
+
+const UNIT_TYPES = {
+  number: { label: 'عدد', symbol: '' },
+  percent: { label: 'درصد', symbol: '%' },
+  currency: { label: 'تومان', symbol: '﷼' },
+  hours: { label: 'ساعت', symbol: 'h' },
+  days: { label: 'روز', symbol: 'd' },
+  users: { label: 'کاربر', symbol: '' },
+  items: { label: 'مورد', symbol: '' }
+};
+
+---
+
+UI/UX CONSIDERATIONS:
+
+- Keep forms clean - use collapsible sections for optional fields
+- Show "Advanced Options" toggle for description, unit, owner, due date
+- Progress updates should be easily accessible but not intrusive
+- Attachments should support drag & drop
+- Labels should have autocomplete from existing labels
+- Progress bar should be prominent and color-coded (green: on track, yellow: at risk, red: behind)
+- Due date warnings: show badge if < 7 days remaining
+- Empty states: show helpful messages when no progress updates or attachments
+
+---
+
+VALIDATION:
+
+- title: required, max 255 chars
+- target_value: required, must be number
+- current_value: optional, must be <= target_value
+- initial_value: optional, must be <= target_value
+- due_date: optional, must be valid date
+- owner_id: optional, must be valid user from organization
+- labels: optional, array of strings
+- unit: optional, string
+- description: optional, text
+
+---
+
+TESTING CHECKLIST:
+
+□ Create key result with only required fields (title, target_value)
+□ Create key result with all optional fields
+□ Edit key result and update each field individually
+□ Add progress update without note
+□ Add progress update with note
+□ View progress history
+□ Upload attachment (PDF, image, document)
+□ Download attachment
+□ Delete attachment
+□ Add multiple labels
+□ Remove labels
+□ Change owner
+□ Set due date
+□ Clear optional fields (set to null)
+□ Verify progress bar calculation
+□ Test with different units
+□ Check due date warnings
+□ Verify permissions (only objective creator can edit)
+
+---
+
+DOCUMENTATION:
+
+Full API documentation: KEY_RESULTS_ENHANCEMENT.md
+Complete examples and schemas included in the doc.
+
+---
+
+NOTES:
+
+- Backend is fully tested and deployed
+- All endpoints return proper error messages
+- File uploads limited to 10MB
+- Attachments stored in /uploads/key-results/
+- Labels reuse existing label system (same as tasks)
+- Progress updates are immutable (cannot be edited/deleted)
+- Owner must be from same organization
+- All timestamps in ISO 8601 format
+
+---
+
+QUESTIONS?
+
+Check KEY_RESULTS_ENHANCEMENT.md for:
+- Complete API specifications
+- Request/response examples
+- Frontend component examples
+- Error handling patterns
+
+---
+
+ACCEPTANCE CRITERIA:
+
+✅ All 8 new fields are supported in create/edit forms
+✅ Progress tracking is functional and intuitive
+✅ Attachments can be uploaded, viewed, and deleted
+✅ Labels work correctly (autocomplete pending)
+✅ Progress visualization is clear and accurate
+✅ Due date warnings are visible
+✅ Owner assignment works properly
+✅ Unit types display correctly with symbols
+✅ All optional fields can be cleared/removed
+✅ Forms validate correctly
+✅ Error messages are user-friendly
+✅ Loading states are implemented
+✅ Mobile responsive
+
+FILES CREATED:
+- src/services/keyResultService.js
+- src/constants/keyResultUnits.js
+- src/components/EnhancedKeyResultForm.jsx + .css
+- src/components/EnhancedKeyResultCard.jsx + .css
+- src/components/KeyResultProgressModal.jsx + .css
+- src/components/KeyResultAttachments.jsx + .css
+- src/components/ObjectivesEnhanced.jsx
+- KEY_RESULTS_IMPLEMENTATION.md
+
+---
+
+PRIORITY ORDER:
+
+1. Update create/edit forms with new fields (Day 1)
+2. Implement progress tracking UI (Day 1-2)
+3. Implement attachments (Day 2)
+4. Update display/visualization (Day 2-3)
+5. Polish and testing (Day 3)
+
+---
+
+Good luck! The backend team is available for any questions.

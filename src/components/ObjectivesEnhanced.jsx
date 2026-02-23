@@ -43,7 +43,8 @@ function ObjectivesEnhanced({ token, showOnlyKRs }) {
 
   const fetchAllKeyResults = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/objectives`, {
+      // فقط اهداف و شاخص‌های کاربر جاری
+      const response = await fetch(`${API_BASE_URL}/api/objectives?my_objectives=true`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.ok) {
@@ -68,7 +69,8 @@ function ObjectivesEnhanced({ token, showOnlyKRs }) {
 
   const fetchAvailableObjectives = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/objectives`, {
+      // فقط اهداف کاربر جاری
+      const response = await fetch(`${API_BASE_URL}/api/objectives?my_objectives=true`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.ok) {
@@ -82,7 +84,8 @@ function ObjectivesEnhanced({ token, showOnlyKRs }) {
 
   const fetchObjectives = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/objectives`, {
+      // فقط اهداف کاربر جاری
+      const response = await fetch(`${API_BASE_URL}/api/objectives?my_objectives=true`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.ok) {

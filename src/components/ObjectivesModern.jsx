@@ -170,7 +170,8 @@ function ObjectivesModern({ token, showOnlyKRs }) {
 
   const fetchObjectives = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/objectives`, {
+      // فقط اهداف کاربر جاری
+      const response = await fetch(`${API_BASE_URL}/api/objectives?my_objectives=true`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -188,7 +189,8 @@ function ObjectivesModern({ token, showOnlyKRs }) {
 
   const fetchKeyResults = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/keyresults`, {
+      // فقط شاخص‌های کلیدی کاربر جاری
+      const response = await fetch(`${API_BASE_URL}/api/keyresults?my_key_results=true`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -206,7 +208,8 @@ function ObjectivesModern({ token, showOnlyKRs }) {
 
   const fetchTeamMembers = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/teams/members`, {
+      // فقط اعضای تیم‌های کاربر جاری
+      const response = await fetch(`${API_BASE_URL}/api/teams/members?my_teams=true`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }

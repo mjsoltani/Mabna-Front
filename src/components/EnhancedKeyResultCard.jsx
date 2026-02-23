@@ -1,23 +1,35 @@
-import { useState } from 'react';
+import { useState, useMemo, memo } from 'react';
 import { formatValueWithUnit } from '../constants/keyResultUnits';
 import KeyResultProgressModal from './KeyResultProgressModal';
 import KeyResultAttachments from './KeyResultAttachments';
 import './EnhancedKeyResultCard.css';
 
-function EnhancedKeyResultCard({ 
+const EnhancedKeyResultCard = memo(({ 
   keyResult, 
   token, 
   onEdit, 
   onDelete, 
   onUpdate,
   isCreator 
-}) {
+}) => {
   const [showProgressModal, setShowProgressModal] = useState(false);
   const [showAttachments, setShowAttachments] = useState(false);
 
-  const currentValue = keyResult.current_value ?? keyResult.initial_value ?? 0;
-  const targetValue = keyResult.target_value || 100;
-  const progress = Math.min(100, Math.round((currentValue / targetValue) * 100));
+  // Memoize calculations for performance
+  const currentValue = useMemo(() => 
+    keyResult.current_value ?? keyResult.initial_value ?? 0,
+    [keyResult.current_value, keyResult.initial_value]
+  );
+  
+  const targetValue = useMemo(() => 
+    keyResult.target_value || 100,
+    [keyResult.target_value]
+  );
+  
+  const progress = useMemo(() => 
+    Math.min(100, Math.round((currentValue / targetValue) * 100)),
+    [currentValue, targetValue]
+  );
 
   const getProgressColor = () => {
     if (progress >= 70) return '';
@@ -25,17 +37,23 @@ function EnhancedKeyResultCard({
     return 'danger';
   };
 
-  const getDaysUntilDue = () => {
+  // Memoize date calculations
+  const daysUntilDue = useMemo(() => {
     if (!keyResult.due_date) return null;
     const today = new Date();
     const dueDate = new Date(keyResult.due_date);
     const diffTime = dueDate - today;
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays;
-  };
+  }, [keyResult.due_date]);
 
-  const daysUntilDue = getDaysUntilDue();
-  const isUrgent = daysUntilDue !== null && daysUntilDue < 7 && daysUntilDue >= 0;
+  const dueDateStatus = useMemo(() => {
+    if (daysUntilDue === null) return null;
+    if (daysUntilDue < 0) return 'overdue';
+    if (daysUntilDue < 7) return 'urgent';
+    if (daysUntilDue < 14) return 'warning';
+    return 'normal';
+  }, [daysUntilDue]);
 
   return (
     <>
@@ -56,10 +74,15 @@ function EnhancedKeyResultCard({
               )}
               
               {keyResult.due_date && (
-                <span className={`kr-badge due-date ${isUrgent ? 'urgent' : ''}`}>
+                <span className={`kr-badge due-date ${dueDateStatus}`}>
                   📅 {new Date(keyResult.due_date).toLocaleDateString('fa-IR')}
-                  {daysUntilDue !== null && daysUntilDue >= 0 && (
-                    <span> ({daysUntilDue} روز)</span>
+                  {daysUntilDue !== null && (
+                    <span>
+                      {daysUntilDue < 0 
+                        ? ` (${Math.abs(daysUntilDue)} روز گذشته)` 
+                        : ` (${daysUntilDue} روز مانده)`
+                      }
+                    </span>
                   )}
                 </span>
               )}
@@ -157,6 +180,17 @@ function EnhancedKeyResultCard({
       )}
     </>
   );
-}
+}, (prevProps, nextProps) => {
+  // Custom comparison for memo optimization
+  return (
+    prevProps.keyResult.id === nextProps.keyResult.id &&
+    prevProps.keyResult.current_value === nextProps.keyResult.current_value &&
+    prevProps.keyResult.title === nextProps.keyResult.title &&
+    prevProps.keyResult.due_date === nextProps.keyResult.due_date &&
+    prevProps.isCreator === nextProps.isCreator
+  );
+});
+
+EnhancedKeyResultCard.displayName = 'EnhancedKeyResultCard';
 
 export default EnhancedKeyResultCard;

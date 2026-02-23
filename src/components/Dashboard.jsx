@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import './Dashboard.css';
 import Objectives from './Objectives';
 import ObjectivesModern from './ObjectivesModern';
+import ObjectivesEnhanced from './ObjectivesEnhanced';
 import AdminDashboard from './AdminDashboard';
 import TasksV2 from './TasksV2';
 import Invitations from './Invitations';
@@ -283,8 +284,8 @@ function Dashboard({ user, token, onLogout }) {
                 onTaskClick={handleTaskClick}
               />
             )}
-            {activeTab === 'objectives' && <ObjectivesModern token={token} />}
-            {activeTab === 'keyresults' && <ObjectivesModern token={token} showOnlyKRs={true} />}
+            {activeTab === 'objectives' && <ObjectivesEnhanced token={token} />}
+            {activeTab === 'keyresults' && <ObjectivesEnhanced token={token} showOnlyKRs={true} />}
             {activeTab === 'tasks' && <TasksV2 token={token} user={user} focusTaskId={focusTaskId} />}
             {activeTab === 'calendar' && <Calendar token={token} />}
             {activeTab === 'recurring' && <RecurringPatterns token={token} />}

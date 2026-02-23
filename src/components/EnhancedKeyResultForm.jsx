@@ -1,10 +1,27 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import DatePicker from 'react-multi-date-picker';
 import persian from 'react-date-object/calendars/persian';
 import persian_fa from 'react-date-object/locales/persian_fa';
 import { UNIT_TYPES } from '../constants/keyResultUnits';
 import API_BASE_URL from '../config';
 import './EnhancedKeyResultForm.css';
+
+// Debounce helper
+const useDebounce = (value, delay) => {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+};
 
 function EnhancedKeyResultForm({ 
   isOpen, 
@@ -29,6 +46,54 @@ function EnhancedKeyResultForm({
   });
   const [dueDate, setDueDate] = useState(null);
   const [labelInput, setLabelInput] = useState('');
+  const [errors, setErrors] = useState({});
+  const [existingLabels, setExistingLabels] = useState([]);
+
+  // Debounce label input for autocomplete
+  const debouncedLabelInput = useDebounce(labelInput, 300);
+
+  // Validation rules
+  const validateForm = useCallback(() => {
+    const newErrors = {};
+
+    if (!formData.title || formData.title.trim().length === 0) {
+      newErrors.title = 'عنوان الزامی است';
+    } else if (formData.title.length > 255) {
+      newErrors.title = 'عنوان نباید بیشتر از 255 کاراکتر باشد';
+    }
+
+    if (!formData.target_value || formData.target_value <= 0) {
+      newErrors.target_value = 'مقدار هدف باید بیشتر از صفر باشد';
+    }
+
+    if (formData.current_value && parseFloat(formData.current_value) > parseFloat(formData.target_value)) {
+      newErrors.current_value = 'مقدار فعلی نمی‌تواند بیشتر از مقدار هدف باشد';
+    }
+
+    if (formData.initial_value && parseFloat(formData.initial_value) > parseFloat(formData.target_value)) {
+      newErrors.initial_value = 'مقدار اولیه نمی‌تواند بیشتر از مقدار هدف باشد';
+    }
+
+    if (formData.description && formData.description.length > 1000) {
+      newErrors.description = 'توضیحات نباید بیشتر از 1000 کاراکتر باشد (توصیه)';
+    }
+
+    if (formData.labels.length > 10) {
+      newErrors.labels = 'تعداد برچسب‌ها نباید بیشتر از 10 باشد (توصیه)';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  }, [formData]);
+
+  // Filter existing labels for autocomplete
+  const filteredLabels = useMemo(() => {
+    if (!debouncedLabelInput) return [];
+    return existingLabels.filter(label => 
+      label.toLowerCase().includes(debouncedLabelInput.toLowerCase()) &&
+      !formData.labels.includes(label)
+    ).slice(0, 5);
+  }, [debouncedLabelInput, existingLabels, formData.labels]);
 
   useEffect(() => {
     if (isOpen) {
@@ -72,14 +137,25 @@ function EnhancedKeyResultForm({
   const handleSubmit = (e) => {
     e.preventDefault();
     
+    // Validate before submit
+    if (!validateForm()) {
+      return;
+    }
+    
     const payload = {
-      title: formData.title,
+      title: formData.title.trim(),
       target_value: parseFloat(formData.target_value)
     };
 
-    if (formData.description) payload.description = formData.description;
-    if (formData.initial_value !== null) payload.initial_value = parseFloat(formData.initial_value);
-    if (formData.current_value !== null) payload.current_value = parseFloat(formData.current_value);
+    if (formData.description && formData.description.trim()) {
+      payload.description = formData.description.trim();
+    }
+    if (formData.initial_value !== null && formData.initial_value !== '') {
+      payload.initial_value = parseFloat(formData.initial_value);
+    }
+    if (formData.current_value !== null && formData.current_value !== '') {
+      payload.current_value = parseFloat(formData.current_value);
+    }
     if (formData.unit) payload.unit = formData.unit;
     if (formData.owner_id) payload.owner_id = formData.owner_id;
     if (dueDate) {
@@ -94,16 +170,27 @@ function EnhancedKeyResultForm({
     onSubmit(payload);
   };
 
-  const handleAddLabel = (e) => {
-    if (e.key === 'Enter' && labelInput.trim()) {
-      e.preventDefault();
-      if (!formData.labels.includes(labelInput.trim())) {
+  const handleAddLabel = (e, labelToAdd = null) => {
+    const label = labelToAdd || labelInput.trim();
+    
+    if ((e?.key === 'Enter' || labelToAdd) && label) {
+      e?.preventDefault();
+      if (!formData.labels.includes(label)) {
+        if (formData.labels.length >= 10) {
+          setErrors({ ...errors, labels: 'حداکثر 10 برچسب مجاز است' });
+          return;
+        }
         setFormData({
           ...formData,
-          labels: [...formData.labels, labelInput.trim()]
+          labels: [...formData.labels, label]
         });
+        // Add to existing labels for future autocomplete
+        if (!existingLabels.includes(label)) {
+          setExistingLabels([...existingLabels, label]);
+        }
       }
       setLabelInput('');
+      setErrors({ ...errors, labels: undefined });
     }
   };
 
@@ -253,6 +340,24 @@ function EnhancedKeyResultForm({
                     placeholder="برچسب جدید (Enter برای افزودن)"
                   />
                 </div>
+                {errors.labels && <span className="error-message">{errors.labels}</span>}
+                {filteredLabels.length > 0 && (
+                  <div className="label-suggestions">
+                    {filteredLabels.map(label => (
+                      <button
+                        key={label}
+                        type="button"
+                        className="label-suggestion"
+                        onClick={() => handleAddLabel(null, label)}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                <small className="form-hint">
+                  {formData.labels.length}/10 برچسب • پیشنهاد: دوره زمانی، دپارتمان، اولویت
+                </small>
               </div>
             </div>
           )}

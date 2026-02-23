@@ -11,6 +11,7 @@ import './ObjectivesModern.css';
 
 function ObjectivesEnhanced({ token, showOnlyKRs }) {
   const [objectives, setObjectives] = useState([]);
+  const [allKeyResults, setAllKeyResults] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [showKRModal, setShowKRModal] = useState(false);
@@ -19,6 +20,7 @@ function ObjectivesEnhanced({ token, showOnlyKRs }) {
   const [selectedKR, setSelectedKR] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [deleteKRConfirm, setDeleteKRConfirm] = useState(null);
+  const [availableObjectives, setAvailableObjectives] = useState([]);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -31,8 +33,52 @@ function ObjectivesEnhanced({ token, showOnlyKRs }) {
   const [editEndValue, setEditEndValue] = useState(null);
 
   useEffect(() => {
-    fetchObjectives();
-  }, []);
+    if (showOnlyKRs) {
+      fetchAllKeyResults();
+      fetchAvailableObjectives();
+    } else {
+      fetchObjectives();
+    }
+  }, [showOnlyKRs]);
+
+  const fetchAllKeyResults = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/objectives`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        // Extract all key results from all objectives
+        const allKRs = data.flatMap(obj => 
+          (obj.key_results || []).map(kr => ({
+            ...kr,
+            objective_title: obj.title,
+            objective_id: obj.id,
+            is_creator: obj.is_creator
+          }))
+        );
+        setAllKeyResults(allKRs);
+      }
+    } catch (error) {
+      console.error('Error fetching key results:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchAvailableObjectives = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/objectives`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setAvailableObjectives(data.filter(obj => obj.is_creator));
+      }
+    } catch (error) {
+      console.error('Error fetching objectives:', error);
+    }
+  };
 
   const fetchObjectives = async () => {
     try {
@@ -206,10 +252,25 @@ function ObjectivesEnhanced({ token, showOnlyKRs }) {
               {showOnlyKRs ? 'شاخص‌های کلیدی' : 'اهداف'}
             </h1>
             <p className="text-zinc-600">
-              مدیریت و پیگیری اهداف و شاخص‌های کلیدی با قابلیت‌های پیشرفته
+              {showOnlyKRs 
+                ? 'مشاهده و مدیریت تمام شاخص‌های کلیدی'
+                : 'مدیریت و پیگیری اهداف و شاخص‌های کلیدی با قابلیت‌های پیشرفته'
+              }
             </p>
           </div>
-          {!showOnlyKRs && (
+          {showOnlyKRs ? (
+            availableObjectives.length > 0 && (
+              <button
+                onClick={() => setShowKRModal(true)}
+                className="px-6 py-3 bg-zinc-900 text-white 
+                  rounded-2xl font-medium hover:scale-105 transition-transform duration-200
+                  flex items-center gap-2"
+              >
+                <Target className="w-5 h-5" />
+                شاخص کلیدی جدید
+              </button>
+            )
+          ) : (
             <button
               onClick={() => setShowModal(true)}
               className="px-6 py-3 bg-zinc-900 text-white 
@@ -221,6 +282,75 @@ function ObjectivesEnhanced({ token, showOnlyKRs }) {
             </button>
           )}
         </div>
+
+        {showOnlyKRs && availableObjectives.length === 0 && (
+          <div className="text-center py-20">
+            <Target className="w-20 h-20 mx-auto text-zinc-300 mb-4" />
+            <h3 className="text-2xl font-semibold text-zinc-700 mb-2">
+              برای ایجاد شاخص کلیدی، ابتدا یک هدف ایجاد کنید
+            </h3>
+            <p className="text-zinc-500 mb-6">
+              شاخص‌های کلیدی باید به یک هدف متصل باشند
+            </p>
+            <button
+              onClick={() => setShowModal(true)}
+              className="px-6 py-3 bg-zinc-900 text-white 
+                rounded-2xl font-medium hover:scale-105 transition-transform duration-200
+                inline-flex items-center gap-2"
+            >
+              <Target className="w-5 h-5" />
+              ایجاد هدف جدید
+            </button>
+          </div>
+        )}
+
+        {showOnlyKRs && allKeyResults.length > 0 && (
+          <div className="space-y-3">
+            {allKeyResults.map(kr => (
+              <div key={kr.id} className="bg-white rounded-2xl p-4 shadow-sm border border-zinc-200">
+                <div className="flex justify-between items-start mb-3">
+                  <div>
+                    <span className="text-sm text-zinc-500">
+                      📊 {kr.objective_title}
+                    </span>
+                  </div>
+                </div>
+                <EnhancedKeyResultCard
+                  keyResult={kr}
+                  token={token}
+                  isCreator={kr.is_creator}
+                  onEdit={() => setSelectedKR(kr)}
+                  onDelete={() => setDeleteKRConfirm(kr.id)}
+                  onUpdate={() => {
+                    fetchAllKeyResults();
+                    fetchAvailableObjectives();
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+        )}
+
+        {showOnlyKRs && allKeyResults.length === 0 && availableObjectives.length > 0 && (
+          <div className="text-center py-20">
+            <Target className="w-20 h-20 mx-auto text-zinc-300 mb-4" />
+            <h3 className="text-2xl font-semibold text-zinc-700 mb-2">
+              هنوز شاخص کلیدی وجود ندارد
+            </h3>
+            <p className="text-zinc-500 mb-6">
+              اولین شاخص کلیدی خود را ایجاد کنید
+            </p>
+            <button
+              onClick={() => setShowKRModal(true)}
+              className="px-6 py-3 bg-zinc-900 text-white 
+                rounded-2xl font-medium hover:scale-105 transition-transform duration-200
+                inline-flex items-center gap-2"
+            >
+              <Target className="w-5 h-5" />
+              ایجاد شاخص کلیدی
+            </button>
+          </div>
+        )}
 
         {!showOnlyKRs && objectives.length === 0 && (
           <div className="text-center py-20">
@@ -243,7 +373,8 @@ function ObjectivesEnhanced({ token, showOnlyKRs }) {
           </div>
         )}
 
-        <div className="space-y-8">
+        {!showOnlyKRs && (
+          <div className="space-y-8">
           {objectives.map(obj => (
             <div key={obj.id} className="bg-white rounded-2xl p-6 shadow-sm border border-zinc-200">
               <div className="flex justify-between items-start mb-6">
@@ -326,6 +457,7 @@ function ObjectivesEnhanced({ token, showOnlyKRs }) {
             </div>
           ))}
         </div>
+        )}
       </div>
 
       {/* Modal ایجاد هدف */}
@@ -446,17 +578,73 @@ function ObjectivesEnhanced({ token, showOnlyKRs }) {
       )}
 
       {/* Modal ایجاد/ویرایش شاخص کلیدی */}
-      <EnhancedKeyResultForm
-        isOpen={showKRModal || !!selectedKR}
-        onClose={() => {
-          setShowKRModal(false);
-          setSelectedKR(null);
-        }}
-        onSubmit={selectedKR ? handleEditKR : handleAddKR}
-        initialData={selectedKR}
-        token={token}
-        objectiveId={selectedObjective}
-      />
+      {showKRModal && showOnlyKRs && (
+        <div className="modal-overlay" onClick={() => setShowKRModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h3>ایجاد شاخص کلیدی جدید</h3>
+            <div className="form-group" style={{ marginBottom: '20px' }}>
+              <label>انتخاب هدف <span className="required">*</span></label>
+              <select
+                value={selectedObjective || ''}
+                onChange={(e) => setSelectedObjective(e.target.value)}
+                required
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  borderRadius: '6px',
+                  border: '1px solid #d1d5db',
+                  fontSize: '14px'
+                }}
+              >
+                <option value="">یک هدف انتخاب کنید</option>
+                {availableObjectives.map(obj => (
+                  <option key={obj.id} value={obj.id}>
+                    {obj.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {selectedObjective && (
+              <EnhancedKeyResultForm
+                isOpen={true}
+                onClose={() => {
+                  setShowKRModal(false);
+                  setSelectedObjective(null);
+                }}
+                onSubmit={handleAddKR}
+                token={token}
+                objectiveId={selectedObjective}
+              />
+            )}
+            {!selectedObjective && (
+              <div className="form-actions">
+                <button 
+                  type="button" 
+                  className="btn-secondary" 
+                  onClick={() => setShowKRModal(false)}
+                >
+                  انصراف
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Modal ایجاد/ویرایش شاخص کلیدی - برای حالت عادی */}
+      {!showOnlyKRs && (
+        <EnhancedKeyResultForm
+          isOpen={showKRModal || !!selectedKR}
+          onClose={() => {
+            setShowKRModal(false);
+            setSelectedKR(null);
+          }}
+          onSubmit={selectedKR ? handleEditKR : handleAddKR}
+          initialData={selectedKR}
+          token={token}
+          objectiveId={selectedObjective}
+        />
+      )}
 
       {/* Modal تأیید حذف هدف */}
       {deleteConfirm && (

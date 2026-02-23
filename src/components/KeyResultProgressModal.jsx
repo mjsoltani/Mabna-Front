@@ -36,8 +36,25 @@ function KeyResultProgressModal({ isOpen, onClose, keyResult, token, onSuccess }
     }
 
     const value = parseFloat(progressValue);
+    
+    // Validation
+    if (value < 0) {
+      alert('مقدار نمی‌تواند منفی باشد');
+      return;
+    }
+    
     if (value > keyResult.target_value) {
-      alert(`مقدار نمی‌تواند بیشتر از ${keyResult.target_value} باشد`);
+      const confirm = window.confirm(
+        `مقدار وارد شده (${value}) بیشتر از هدف (${keyResult.target_value}) است.\n` +
+        'آیا مطمئن هستید؟ (توصیه: ابتدا مقدار هدف را افزایش دهید)'
+      );
+      if (!confirm) return;
+    }
+
+    // Check if value is same as current
+    const currentVal = keyResult.current_value || keyResult.initial_value || 0;
+    if (value === currentVal && !note) {
+      alert('مقدار تغییری نکرده است. لطفاً یادداشت اضافه کنید یا مقدار را تغییر دهید.');
       return;
     }
 
@@ -85,9 +102,12 @@ function KeyResultProgressModal({ isOpen, onClose, keyResult, token, onSuccess }
               step="0.01"
               value={progressValue}
               onChange={(e) => setProgressValue(e.target.value)}
-              placeholder="مقدار پیشرفت"
+              placeholder={`مقدار فعلی: ${keyResult?.current_value || keyResult?.initial_value || 0}`}
               required
             />
+            <small className="form-hint">
+              پیشرفت: {keyResult?.current_value || keyResult?.initial_value || 0} / {keyResult?.target_value}
+            </small>
           </div>
 
           <div className="form-group">
@@ -95,9 +115,13 @@ function KeyResultProgressModal({ isOpen, onClose, keyResult, token, onSuccess }
             <textarea
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              placeholder="توضیحات در مورد این پیشرفت..."
+              placeholder="مثال: تکمیل فاز اول پروژه، مشکلات برطرف شد، ..."
               rows="3"
+              maxLength={500}
             />
+            <small className="form-hint">
+              {note.length}/500 کاراکتر • توصیه: دلیل تغییر یا وضعیت فعلی را توضیح دهید
+            </small>
           </div>
 
           <div className="form-actions">

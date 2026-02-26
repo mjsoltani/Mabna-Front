@@ -4,6 +4,7 @@ import DatePicker from 'react-multi-date-picker';
 import persian from 'react-date-object/calendars/persian';
 import persian_fa from 'react-date-object/locales/persian_fa';
 import { toJalali } from '../utils/dateUtils';
+import { User, Users } from 'lucide-react';
 import './Objectives.css';
 
 function Objectives({ token, showOnlyKRs }) {
@@ -25,7 +26,9 @@ function Objectives({ token, showOnlyKRs }) {
     title: '',
     description: '',
     start_date: '',
-    end_date: ''
+    end_date: '',
+    assignee_ids: [],
+    team_ids: []
   });
   const [startValue, setStartValue] = useState(null);
   const [endValue, setEndValue] = useState(null);
@@ -36,9 +39,14 @@ function Objectives({ token, showOnlyKRs }) {
     initial_value: 0,
     target_value: 0
   });
+  const [orgUsers, setOrgUsers] = useState([]);
+  const [teams, setTeams] = useState([]);
+  const [formError, setFormError] = useState('');
 
   useEffect(() => {
     fetchObjectives();
+    fetchOrgUsers();
+    fetchTeams();
   }, []);
 
   const fetchObjectives = async () => {
@@ -59,6 +67,34 @@ function Objectives({ token, showOnlyKRs }) {
     }
   };
 
+  const fetchOrgUsers = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/users/list`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setOrgUsers(data);
+      }
+    } catch (error) {
+      console.error('Error fetching org users:', error);
+    }
+  };
+
+  const fetchTeams = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/teams`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setTeams(data);
+      }
+    } catch (error) {
+      console.error('Error fetching teams:', error);
+    }
+  };
+
   const toYMD = (d) => {
     if (!d) return '';
     const date = d.toDate ? d.toDate() : new Date(d);
@@ -70,12 +106,22 @@ function Objectives({ token, showOnlyKRs }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setFormError('');
+
+    // Validation: حداقل یکی از assignee_ids یا team_ids باید انتخاب بشه
+    if (formData.assignee_ids.length === 0 && formData.team_ids.length === 0) {
+      setFormError('لطفاً حداقل یک مسئول یا تیم انتخاب کنید');
+      return;
+    }
+
     try {
       const payload = {
         title: formData.title,
-        description: formData.description,
+        description: formData.description || null,
         start_date: toYMD(startValue),
-        end_date: toYMD(endValue)
+        end_date: toYMD(endValue),
+        assignee_ids: formData.assignee_ids.length > 0 ? formData.assignee_ids : null,
+        team_ids: formData.team_ids.length > 0 ? formData.team_ids : null
       };
       const response = await fetch(`${API_BASE_URL}/api/objectives`, {
         method: 'POST',
@@ -88,23 +134,38 @@ function Objectives({ token, showOnlyKRs }) {
       if (response.ok) {
         await fetchObjectives();
         setShowModal(false);
-        setFormData({ title: '', description: '', start_date: '', end_date: '' });
+        setFormData({ title: '', description: '', start_date: '', end_date: '', assignee_ids: [], team_ids: [] });
         setStartValue(null);
         setEndValue(null);
+        setFormError('');
+      } else {
+        const error = await response.json();
+        setFormError(error.error || 'خطا در ایجاد هدف');
       }
     } catch (error) {
       console.error('Error creating objective:', error);
+      setFormError('خطا در ایجاد هدف');
     }
   };
 
   const handleEditSubmit = async (e) => {
     e.preventDefault();
+    setFormError('');
+
+    // Validation: حداقل یکی از assignee_ids یا team_ids باید انتخاب بشه
+    if (formData.assignee_ids.length === 0 && formData.team_ids.length === 0) {
+      setFormError('لطفاً حداقل یک مسئول یا تیم انتخاب کنید');
+      return;
+    }
+
     try {
       const payload = {
         title: formData.title,
-        description: formData.description,
+        description: formData.description || null,
         start_date: toYMD(editStartValue),
-        end_date: toYMD(editEndValue)
+        end_date: toYMD(editEndValue),
+        assignee_ids: formData.assignee_ids.length > 0 ? formData.assignee_ids : null,
+        team_ids: formData.team_ids.length > 0 ? formData.team_ids : null
       };
       const response = await fetch(`${API_BASE_URL}/api/objectives/${selectedObjective.id}`, {
         method: 'PUT',
@@ -118,9 +179,14 @@ function Objectives({ token, showOnlyKRs }) {
         await fetchObjectives();
         setShowEditModal(false);
         setSelectedObjective(null);
+        setFormError('');
+      } else {
+        const error = await response.json();
+        setFormError(error.error || 'خطا در ویرایش هدف');
       }
     } catch (error) {
       console.error('Error updating objective:', error);
+      setFormError('خطا در ویرایش هدف');
     }
   };
 
@@ -298,9 +364,61 @@ function Objectives({ token, showOnlyKRs }) {
                 />
               </div>
 
+              {/* بخش انتساب */}
+              <div className="assignment-section">
+                <h4 className="assignment-title">
+                  <User className="w-4 h-4" />
+                  انتساب به <span className="required">*</span>
+                </h4>
+                
+                {formError && <div className="form-error">{formError}</div>}
+
+                <div className="form-group">
+                  <label>مسئولین (کاربران)</label>
+                  <select
+                    multiple
+                    value={formData.assignee_ids}
+                    onChange={(e) => setFormData({ 
+                      ...formData, 
+                      assignee_ids: Array.from(e.target.selectedOptions, option => option.value) 
+                    })}
+                    className="multi-select"
+                  >
+                    {orgUsers.map(user => (
+                      <option key={user.user_id} value={user.user_id}>
+                        {user.full_name}
+                      </option>
+                    ))}
+                  </select>
+                  <small className="form-hint">برای انتخاب چند کاربر، Ctrl را نگه دارید</small>
+                </div>
+
+                <div className="form-group">
+                  <label>تیم‌ها</label>
+                  <select
+                    multiple
+                    value={formData.team_ids}
+                    onChange={(e) => setFormData({ 
+                      ...formData, 
+                      team_ids: Array.from(e.target.selectedOptions, option => option.value) 
+                    })}
+                    className="multi-select"
+                  >
+                    {teams.map(team => (
+                      <option key={team.id} value={team.id}>
+                        {team.name}
+                      </option>
+                    ))}
+                  </select>
+                  <small className="form-hint">برای انتخاب چند تیم، Ctrl را نگه دارید</small>
+                </div>
+
+                <p className="assignment-hint">حداقل یکی از موارد بالا باید انتخاب شود</p>
+              </div>
+
               <div className="form-actions">
                 <button type="submit" className="btn-primary">ایجاد</button>
-                <button type="button" className="btn-secondary" onClick={() => setShowModal(false)}>
+                <button type="button" className="btn-secondary" onClick={() => { setShowModal(false); setFormError(''); }}>
                   انصراف
                 </button>
               </div>
@@ -354,9 +472,61 @@ function Objectives({ token, showOnlyKRs }) {
                 />
               </div>
 
+              {/* بخش انتساب */}
+              <div className="assignment-section">
+                <h4 className="assignment-title">
+                  <User className="w-4 h-4" />
+                  انتساب به <span className="required">*</span>
+                </h4>
+                
+                {formError && <div className="form-error">{formError}</div>}
+
+                <div className="form-group">
+                  <label>مسئولین (کاربران)</label>
+                  <select
+                    multiple
+                    value={formData.assignee_ids}
+                    onChange={(e) => setFormData({ 
+                      ...formData, 
+                      assignee_ids: Array.from(e.target.selectedOptions, option => option.value) 
+                    })}
+                    className="multi-select"
+                  >
+                    {orgUsers.map(user => (
+                      <option key={user.user_id} value={user.user_id}>
+                        {user.full_name}
+                      </option>
+                    ))}
+                  </select>
+                  <small className="form-hint">برای انتخاب چند کاربر، Ctrl را نگه دارید</small>
+                </div>
+
+                <div className="form-group">
+                  <label>تیم‌ها</label>
+                  <select
+                    multiple
+                    value={formData.team_ids}
+                    onChange={(e) => setFormData({ 
+                      ...formData, 
+                      team_ids: Array.from(e.target.selectedOptions, option => option.value) 
+                    })}
+                    className="multi-select"
+                  >
+                    {teams.map(team => (
+                      <option key={team.id} value={team.id}>
+                        {team.name}
+                      </option>
+                    ))}
+                  </select>
+                  <small className="form-hint">برای انتخاب چند تیم، Ctrl را نگه دارید</small>
+                </div>
+
+                <p className="assignment-hint">حداقل یکی از موارد بالا باید انتخاب شود</p>
+              </div>
+
               <div className="form-actions">
-                <button type="submit" className="btn-primary">ذخیره</button>
-                <button type="button" className="btn-secondary" onClick={() => setShowEditModal(false)}>
+                <button type="submit" className="btn-primary">ذخیره تغییرات</button>
+                <button type="button" className="btn-secondary" onClick={() => { setShowEditModal(false); setFormError(''); }}>
                   انصراف
                 </button>
               </div>
@@ -655,7 +825,9 @@ function Objectives({ token, showOnlyKRs }) {
                           title: obj.title, 
                           description: obj.description || '',
                           start_date: obj.start_date, 
-                          end_date: obj.end_date 
+                          end_date: obj.end_date,
+                          assignee_ids: obj.assignees?.map(a => a.user_id) || [],
+                          team_ids: obj.teams?.map(t => t.id) || []
                         });
                         setEditStartValue(new Date(obj.start_date));
                         setEditEndValue(new Date(obj.end_date));

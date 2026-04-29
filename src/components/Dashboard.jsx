@@ -198,8 +198,8 @@ function Dashboard({ user, token, onLogout }) {
 
   return (
     <div className={cn(
-      "flex flex-col md:flex-row bg-gray-100 w-full flex-1 mx-auto border border-neutral-200 overflow-hidden",
-      "h-screen"
+      "flex flex-col md:flex-row bg-gray-100 w-full flex-1 mx-auto border border-neutral-200 overflow-x-hidden md:overflow-hidden",
+      "min-h-screen md:h-screen"
     )}>
       <Sidebar open={open} setOpen={setOpen}>
         <SidebarBody className="justify-between gap-10">
@@ -248,7 +248,7 @@ function Dashboard({ user, token, onLogout }) {
         </SidebarBody>
       </Sidebar>
 
-      <div className="flex flex-1 flex-col">
+      <div className="flex flex-1 flex-col min-h-0">
         <div className="border-b bg-white px-4 md:px-10 py-4">
           <DashboardNavbar
             user={user}
@@ -273,7 +273,7 @@ function Dashboard({ user, token, onLogout }) {
           />
         </div>
         
-        <div className="p-2 md:p-10 bg-white flex flex-col gap-2 flex-1 w-full h-full overflow-auto">
+        <div className="p-2 md:p-10 bg-white flex flex-col gap-2 flex-1 w-full overflow-visible md:overflow-auto">
           <div className="flex-1">
             {activeTab === 'dashboard' && (
               <ModernDashboard 

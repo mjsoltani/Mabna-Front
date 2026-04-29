@@ -23,6 +23,26 @@ function TasksKanban({ token, onTaskClick, onNewTask, refreshTrigger, filterQuer
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const getDropStatus = (over, tasksList) => {
+    if (!over) return null;
+
+    const sortableContainerId = over.data?.current?.sortable?.containerId;
+    if (sortableContainerId && statuses.some(status => status.id === sortableContainerId)) {
+      return sortableContainerId;
+    }
+
+    if (statuses.some(status => status.id === over.id)) {
+      return over.id;
+    }
+
+    const targetTask = tasksList.find(task => task.id === over.id);
+    if (targetTask?.is_approved) {
+      return 'approved';
+    }
+
+    return targetTask?.status || null;
+  };
+
   const fetchTasks = useCallback(async () => {
     try {
       const url = `${API_BASE_URL}/api/tasks${filterQuery ? '?' + filterQuery : ''}`;
@@ -58,11 +78,11 @@ function TasksKanban({ token, onTaskClick, onNewTask, refreshTrigger, filterQuer
     const { active, over } = event;
     if (!over) return;
 
-    const newStatus = over.id;
+    const newStatus = getDropStatus(over, tasks);
     const taskId = active.id;
     const task = tasks.find(t => t.id === taskId);
     
-    if (!task) return;
+    if (!task || !newStatus) return;
 
     // اگر وظیفه به ستون approved کشیده شد
     if (newStatus === 'approved') {
@@ -187,7 +207,10 @@ function TasksKanban({ token, onTaskClick, onNewTask, refreshTrigger, filterQuer
                 color={status.color} 
                 count={statusTasks.length}
               />
-              <KanbanCards id={status.id}>
+              <KanbanCards
+                id={status.id}
+                items={statusTasks.map(task => task.id)}
+              >
                 {statusTasks.map((task, index) => (
                   <KanbanCard
                     key={task.id}

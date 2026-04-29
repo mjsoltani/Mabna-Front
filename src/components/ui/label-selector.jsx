@@ -42,7 +42,7 @@ function LabelSelector({
   };
 
   const handleCreateLabel = async (e) => {
-    e.preventDefault();
+    e?.preventDefault();
     if (!newLabel.name.trim()) return;
 
     try {
@@ -73,7 +73,15 @@ function LabelSelector({
       {/* فرم ایجاد برچسب جدید */}
       {showCreateForm && (
         <div className="create-label-form">
-          <form onSubmit={handleCreateLabel}>
+          <div
+            className="label-create-fields"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                handleCreateLabel();
+              }
+            }}
+          >
             <div className="form-row">
               <input
                 type="text"
@@ -101,7 +109,7 @@ function LabelSelector({
               </div>
             </div>
             <div className="form-actions">
-              <button type="submit" className="btn-create">ایجاد</button>
+              <button type="button" className="btn-create" onClick={handleCreateLabel}>ایجاد</button>
               <button 
                 type="button" 
                 className="btn-cancel"
@@ -110,7 +118,7 @@ function LabelSelector({
                 لغو
               </button>
             </div>
-          </form>
+          </div>
         </div>
       )}
 

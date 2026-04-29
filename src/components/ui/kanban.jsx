@@ -70,22 +70,24 @@ export const KanbanHeader = ({ name, color, count, ...props }) => {
   )
 }
 
-export const KanbanCards = ({ children, id, ...props }) => {
+export const KanbanCards = ({ children, id, items = [], ...props }) => {
   const { setNodeRef, isOver } = useDroppable({
     id: id,
   })
 
   return (
-    <div 
-      ref={setNodeRef}
-      className={cn(
-        "p-4 space-y-3 min-h-[200px] transition-colors",
-        isOver && "bg-blue-50"
-      )} 
-      {...props}
-    >
-      {children}
-    </div>
+    <SortableContext items={items} strategy={verticalListSortingStrategy}>
+      <div
+        ref={setNodeRef}
+        className={cn(
+          "p-4 space-y-3 min-h-[200px] transition-colors",
+          isOver && "bg-blue-50"
+        )}
+        {...props}
+      >
+        {children}
+      </div>
+    </SortableContext>
   )
 }
 

@@ -41,24 +41,10 @@ function Dashboard({ user, token, onLogout }) {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [selectedTeamId, setSelectedTeamId] = useState(null);
-  const [organization, setOrganization] = useState(null);
 
   useEffect(() => {
     fetchNotifications();
-    fetchOrganization();
   }, []);
-
-  const fetchOrganization = async () => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/organizations/default`);
-      if (response.ok) {
-        const data = await response.json();
-        setOrganization(data);
-      }
-    } catch (error) {
-      console.error('Error fetching organization:', error);
-    }
-  };
 
   const fetchNotifications = async () => {
     try {
@@ -232,7 +218,7 @@ function Dashboard({ user, token, onLogout }) {
                   {user.full_name}
                 </span>
                 <span className="text-xs text-neutral-500">
-                  {organization?.name || user.organization?.name || 'افاق سرام'}
+                  {user.organization?.name || ''}
                 </span>
               </motion.div>
             </div>
@@ -253,19 +239,7 @@ function Dashboard({ user, token, onLogout }) {
           <DashboardNavbar
             user={user}
             notificationCount={unreadCount}
-            notifications={notifications.map(n => ({
-              id: n.id,
-              title: n.type === 'task_assigned' ? 'وظیفه جدید' : 
-                     n.type === 'task_completed' ? 'وظیفه تکمیل شد' :
-                     n.type === 'objective_updated' ? 'هدف به‌روز شد' :
-                     n.type === 'comment_added' ? 'نظر جدید' : 'اعلان',
-              message: n.message,
-              time: new Date(n.created_at).toLocaleDateString('fa-IR', { 
-                hour: '2-digit', 
-                minute: '2-digit' 
-              }),
-              task_id: n.task_id
-            }))}
+            notifications={notifications}
             onNotificationClick={handleNotificationClick}
             onProfileClick={() => setActiveTab('profile')}
             onSettingsClick={() => setActiveTab('profile')}
@@ -298,7 +272,7 @@ function Dashboard({ user, token, onLogout }) {
               />
             )}
             {activeTab === 'teams' && <Teams token={token} user={user} />}
-            {activeTab === 'teamslist' && <TeamsList token={token} onTeamClick={handleTeamClick} />}
+            {activeTab === 'teamslist' && <TeamsList token={token} onTeamClick={handleTeamClick} currentUser={user} />}
             {activeTab === 'teamdetail' && selectedTeamId && (
               <TeamDetail 
                 token={token} 

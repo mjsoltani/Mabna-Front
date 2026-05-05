@@ -38,7 +38,7 @@ function NotificationBell({ token, onTaskClick }) {
       if (response.ok) {
         const data = await response.json();
         setNotifications(data);
-        setUnreadCount(data.filter(n => !n.isRead).length);
+        setUnreadCount(data.filter(n => !n.is_read).length);
       }
     } catch (error) {
       console.error('Error fetching notifications:', error);
@@ -62,7 +62,7 @@ function NotificationBell({ token, onTaskClick }) {
 
   const markAllAsRead = async () => {
     try {
-      const unreadNotifications = notifications.filter(n => !n.isRead);
+      const unreadNotifications = notifications.filter(n => !n.is_read);
       
       await Promise.all(
         unreadNotifications.map(n => 
@@ -82,8 +82,8 @@ function NotificationBell({ token, onTaskClick }) {
   const handleNotificationClick = (notification) => {
     markAsRead(notification.id);
     
-    if (notification.taskId && onTaskClick) {
-      onTaskClick(notification.taskId);
+    if (notification.task_id && onTaskClick) {
+      onTaskClick(notification.task_id);
       setShowDropdown(false);
     }
   };
@@ -159,18 +159,20 @@ function NotificationBell({ token, onTaskClick }) {
               notifications.map(notification => (
                 <div
                   key={notification.id}
-                  className={`notification-item ${!notification.isRead ? 'unread' : ''}`}
+                  className={`notification-item ${!notification.is_read ? 'unread' : ''}`}
                   onClick={() => handleNotificationClick(notification)}
                 >
                   <div className="notification-icon">
                     {getNotificationIcon(notification.type)}
                   </div>
                   <div className="notification-content">
-                    <div className="notification-title">{notification.title}</div>
+                    <div className="notification-title">
+                      {notification.title || 'اعلان'}
+                    </div>
                     <div className="notification-message">{notification.message}</div>
-                    <div className="notification-time">{formatTime(notification.createdAt)}</div>
+                    <div className="notification-time">{formatTime(notification.created_at)}</div>
                   </div>
-                  {!notification.isRead && (
+                  {!notification.is_read && (
                     <div className="unread-dot"></div>
                   )}
                 </div>

@@ -15,7 +15,6 @@ function Users({ token, currentUser }) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
-  const [organization, setOrganization] = useState(null);
   const [formData, setFormData] = useState({
     full_name: '',
     email: '',
@@ -25,20 +24,7 @@ function Users({ token, currentUser }) {
 
   useEffect(() => {
     fetchUsers();
-    fetchOrganization();
-  }, []);
-
-  const fetchOrganization = async () => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/organizations/default`);
-      if (response.ok) {
-        const data = await response.json();
-        setOrganization(data);
-      }
-    } catch (error) {
-      console.error('Error fetching organization:', error);
-    }
-  };
+  }, [token]);
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -61,30 +47,56 @@ function Users({ token, currentUser }) {
 
   const handleCreateUser = async () => {
     try {
-      // استفاده از API register چون API ایجاد کاربر هنوز در backend وجود ندارد
+      if (!currentUser?.organization?.org_id) {
+        alert('شناسه سازمان کاربر فعلی در دسترس نیست.');
+        return;
+      }
+
+      if (!formData.full_name.trim() || !formData.email.trim() || !formData.password.trim()) {
+        alert('نام، ایمیل و رمز عبور الزامی هستند.');
+        return;
+      }
+
       const payload = {
-        full_name: formData.full_name,
-        email: formData.email,
+        full_name: formData.full_name.trim(),
+        email: formData.email.trim(),
         password: formData.password,
-        organization_id: organization?.id || 'default-org-afagh-saram'
+        role: formData.role,
+        organization_id: currentUser.organization.org_id
       };
 
-      const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+      const response = await fetch(`${API_BASE_URL}/api/users`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
         },
         body: JSON.stringify(payload)
       });
 
       if (response.ok) {
-        alert('کاربر با موفقیت ایجاد شد. توجه: نقش کاربر به صورت پیش‌فرض "member" است. برای تغییر نقش، لطفاً با تیم backend تماس بگیرید.');
+        alert('کاربر با موفقیت ایجاد شد.');
         await fetchUsers();
         setIsDialogOpen(false);
         resetForm();
       } else {
-        const error = await response.json();
-        alert('خطا در ایجاد کاربر: ' + (error.message || 'خطای نامشخص'));
+        const rawBody = await response.text();
+        let parsedError = {};
+
+        try {
+          parsedError = rawBody ? JSON.parse(rawBody) : {};
+        } catch (_) {
+          parsedError = {};
+        }
+
+        const detail =
+          parsedError.error ||
+          parsedError.message ||
+          (Array.isArray(parsedError.errors) ? parsedError.errors.join('، ') : '') ||
+          rawBody;
+
+        alert(detail ? `خطا در ایجاد کاربر: ${detail}` : `خطا در ایجاد کاربر (کد ${response.status})`);
       }
     } catch (error) {
       console.error('Error creating user:', error);
@@ -233,8 +245,8 @@ function Users({ token, currentUser }) {
           <div>
             <h3 className="font-semibold text-yellow-800 mb-1">توجه: محدودیت‌های موقت</h3>
             <p className="text-sm text-yellow-700">
-              API های ویرایش و حذف کاربر هنوز در backend پیاده‌سازی نشده‌اند. 
-              فعلاً فقط می‌توانید کاربر جدید ایجاد کنید (با نقش پیش‌فرض member).
+              API های ویرایش و حذف کاربر هنوز در backend پیاده‌سازی نشده‌اند.
+              فعلاً فقط امکان ایجاد کاربر جدید در سازمان جاری وجود دارد.
             </p>
           </div>
         </div>
@@ -244,7 +256,7 @@ function Users({ token, currentUser }) {
         <div>
           <h2 className="text-2xl font-semibold">مدیریت کاربران</h2>
           <p className="text-muted-foreground mt-1">
-            {organization ? `سازمان: ${organization.name}` : 'مدیریت کاربران سیستم'}
+            {currentUser?.organization?.name ? `سازمان: ${currentUser.organization.name}` : 'مدیریت کاربران سیستم'}
           </p>
         </div>
         <Button onClick={openCreateDialog}>
@@ -319,7 +331,7 @@ function Users({ token, currentUser }) {
             </DialogTitle>
             <DialogDescription>
               {isCreating 
-                ? `کاربر جدید به سازمان ${organization?.name || 'افاق سرام'} اضافه خواهد شد`
+                ? `کاربر جدید به سازمان ${currentUser?.organization?.name || 'سازمان جاری'} اضافه خواهد شد`
                 : 'اطلاعات کاربر را ویرایش کنید'
               }
             </DialogDescription>

@@ -77,11 +77,21 @@ export function DashboardNavbar({
                 <DropdownMenuItem 
                   key={index}
                   onClick={() => onNotificationClick && onNotificationClick(notif)}
-                  className="flex flex-col items-start py-3"
+                  className={`flex flex-col items-start py-3 ${notif.is_read ? '' : 'bg-amber-50'}`}
                 >
-                  <span className="font-medium">{notif.title}</span>
+                  <span className="font-medium">
+                    {notif.title || (
+                      notif.type === 'task_assigned' ? 'وظیفه جدید' :
+                      notif.type === 'task_completed' ? 'وظیفه تکمیل شد' :
+                      notif.type === 'objective_updated' ? 'هدف به‌روز شد' :
+                      notif.type === 'comment_added' ? 'نظر جدید' :
+                      'اعلان'
+                    )}
+                  </span>
                   <span className="text-xs text-muted-foreground">{notif.message}</span>
-                  <span className="text-xs text-muted-foreground mt-1">{notif.time}</span>
+                  <span className="text-xs text-muted-foreground mt-1">
+                    {notif.created_at ? new Date(notif.created_at).toLocaleString('fa-IR') : ''}
+                  </span>
                 </DropdownMenuItem>
               ))
             ) : (

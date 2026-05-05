@@ -91,6 +91,12 @@ function TasksV2({ token, user, focusTaskId }) {
     fetchTaskCounts();
   }, []);
 
+  useEffect(() => {
+    if (focusTaskId) {
+      openTaskFromNotification(focusTaskId);
+    }
+  }, [focusTaskId]);
+
   // رفرش کردن تعداد تسک‌ها وقتی فیلترها تغییر می‌کنند
   useEffect(() => {
     fetchTaskCounts();
@@ -175,6 +181,23 @@ function TasksV2({ token, user, focusTaskId }) {
       console.error('Error fetching data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const openTaskFromNotification = async (taskId) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/tasks/${taskId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (!response.ok) {
+        return;
+      }
+
+      const task = await response.json();
+      openTaskModal(task);
+    } catch (error) {
+      console.error('Error opening task from notification:', error);
     }
   };
 

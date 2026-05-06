@@ -32,7 +32,8 @@ function Calendar({ token }) {
     categories: [],
     colors: [],
     types: [],
-    assignees: []
+    assignees: [],
+    teams: []
   })
   const [newEvent, setNewEvent] = useState({
     title: '',
@@ -232,15 +233,39 @@ function Calendar({ token }) {
       allEvents = allEvents.filter(event => {
         // برای وظایف
         if (event.type === 'task' && event.assignee) {
-          return filters.assignees.includes(event.assignee.id)
+          return filters.assignees.includes(event.assignee.user_id || event.assignee.id)
         }
         // برای رویدادها
         if (event.assigned_users) {
           return event.assigned_users.some(user => 
-            filters.assignees.includes(user.id)
+            filters.assignees.includes(user.user_id || user.id)
           )
         }
         return filters.assignees.length === 0
+      })
+    }
+
+    if (filters.teams.length > 0) {
+      allEvents = allEvents.filter(event => {
+        if (event.type === 'objective' && event.originalData?.teams) {
+          return event.originalData.teams.some(team =>
+            filters.teams.includes(team.id)
+          )
+        }
+
+        if (event.type === 'task' && event.originalData?.teams) {
+          return event.originalData.teams.some(team =>
+            filters.teams.includes(team.id)
+          )
+        }
+
+        if (event.assigned_teams) {
+          return event.assigned_teams.some(team =>
+            filters.teams.includes(team.id)
+          )
+        }
+
+        return false
       })
     }
 
@@ -262,7 +287,8 @@ function Calendar({ token }) {
       categories: [],
       colors: [],
       types: [],
-      assignees: []
+      assignees: [],
+      teams: []
     })
   }
 
@@ -739,7 +765,7 @@ function Calendar({ token }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             {/* فیلتر نوع رویداد */}
             <div className="space-y-2">
               <Label className="text-sm font-medium">نوع رویداد</Label>
@@ -812,17 +838,40 @@ function Calendar({ token }) {
             <div className="space-y-2">
               <Label className="text-sm font-medium">مسئول</Label>
               <div className="space-y-2 max-h-32 overflow-y-auto">
-                {users.map(user => (
-                  <div key={user.id} className="flex items-center space-x-2 space-x-reverse">
+                {users.map(user => {
+                  const userId = user.user_id || user.id
+                  return (
+                  <div key={userId} className="flex items-center space-x-2 space-x-reverse">
+                    <input
+                    type="checkbox"
+                    id={`assignee-${userId}`}
+                    checked={filters.assignees.includes(userId)}
+                    onChange={() => toggleFilter('assignees', userId)}
+                    className="rounded border-gray-300"
+                    />
+                    <label htmlFor={`assignee-${userId}`} className="text-sm cursor-pointer">
+                      {user.full_name}
+                    </label>
+                  </div>
+                )})}
+              </div>
+            </div>
+
+            {/* فیلتر تیم */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">تیم</Label>
+              <div className="space-y-2 max-h-32 overflow-y-auto">
+                {teams.map(team => (
+                  <div key={team.id} className="flex items-center space-x-2 space-x-reverse">
                     <input
                       type="checkbox"
-                      id={`assignee-${user.id}`}
-                      checked={filters.assignees.includes(user.id)}
-                      onChange={() => toggleFilter('assignees', user.id)}
+                      id={`team-${team.id}`}
+                      checked={filters.teams.includes(team.id)}
+                      onChange={() => toggleFilter('teams', team.id)}
                       className="rounded border-gray-300"
                     />
-                    <label htmlFor={`assignee-${user.id}`} className="text-sm cursor-pointer">
-                      {user.full_name}
+                    <label htmlFor={`team-${team.id}`} className="text-sm cursor-pointer">
+                      {team.name}
                     </label>
                   </div>
                 ))}
@@ -867,11 +916,22 @@ function Calendar({ token }) {
                   )
                 })}
                 {filters.assignees.map(userId => {
-                  const user = users.find(u => u.id === userId)
+                  const user = users.find(u => (u.user_id || u.id) === userId)
                   return (
                     <span key={userId} className="inline-flex items-center gap-1 bg-orange-100 text-orange-800 px-2 py-1 rounded text-sm">
                       {user?.full_name}
                       <button onClick={() => toggleFilter('assignees', userId)} className="ml-1 hover:text-orange-600">
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  )
+                })}
+                {filters.teams.map(teamId => {
+                  const team = teams.find(t => t.id === teamId)
+                  return (
+                    <span key={teamId} className="inline-flex items-center gap-1 bg-cyan-100 text-cyan-800 px-2 py-1 rounded text-sm">
+                      {team?.name}
+                      <button onClick={() => toggleFilter('teams', teamId)} className="ml-1 hover:text-cyan-600">
                         <X className="w-3 h-3" />
                       </button>
                     </span>
